@@ -144,13 +144,13 @@ faas-cli deploy --name=nodeinfo \
     --image=functions/nodeinfo:latest \
     --fprocess="node main.js" \
     --network=default \
-    --gateway=http://<EXTERNAL-IP>:8080 
+    --gateway=http://<EXTERNAL-IP> 
 ```
 
 Invoke nodeinfo function:
 
 ```bash
-echo -n "" | faas-cli invoke nodeinfo --gateway http://<EXTERNAL-IP>:8080
+echo -n "" | faas-cli invoke nodeinfo --gateway http://<EXTERNAL-IP>
 ```
 
 Load testing:
@@ -159,7 +159,7 @@ Load testing:
 #install hey
 go get -u github.com/rakyll/hey
 
-#do 10K requests 
+#do 1K requests 
 hey -n 1000 -c 10 -m POST -d "test" http://admin:admin@<EXTERNAL-IP>/function/nodeinfo
 ```
 
