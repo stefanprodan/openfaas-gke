@@ -4,10 +4,10 @@ A step by step guide on running OpenFaaS with Kubernetes 1.8.1 on Google Cloud.
 
 ### Create a GCP project
 
-Login into GCP and create a new project named openfaas. IF you don't have a GCP account you can apply for 
-trial. After creating the project enable billing and wait for API and related services to be enabled.
+Login into GCP and create a new project named openfaas. If you don't have a GCP account you can apply for 
+a free trial. After creating the project, enable billing and wait for API and related services to be enabled.
 Download and install the Google Cloud SDK from this [page](https://cloud.google.com/sdk/). After installing 
-the SDK run `gcloud init` and set the default zone to `europe-west3-a`.
+the SDK run `gcloud init` and set the default project to `openfaas` and the default zone to `europe-west3-a`.
 
 Install `kubectl` using `gcloud`:
 
@@ -29,7 +29,7 @@ with your public SSH key as value.
 
 ### Create a Kubernetes cluster
 
-Create a multi-zone cluster:
+Create a three nodes cluster with each node on a different zone:
 
 ```bash
 gcloud container clusters create demo \
@@ -69,11 +69,10 @@ kubectl create clusterrolebinding kube-system-cluster-admin \
     --user system:serviceaccount:kube-system:default
 ```
 
-Access kubernetes-dashboard:
+You can access the kubernetes-dashboard at `http://localhost:9099/ui` using kubectl reverse proxy:
 
 ```bash
-kubectl proxy --port=9099
-# http://localhost:9099/ui
+kubectl proxy --port=9099 &
 ```
 
 ### Create a Weave Cloud project
@@ -91,7 +90,7 @@ kubectl apply -n kube-system -f \
 
 ### Deploy OpenFaaS
 
-Deploy OpenFaaS services:
+Deploy OpenFaaS services in the default namespace:
 
 ```bash
 kubectl apply -f ./faas.yml
@@ -115,11 +114,7 @@ Wait for an external IP to be allocated:
 kubectl get services gateway-lb
 ```
 
-Use the external IP to access the OpenFaaS gateway UI:
-
-```bash
-#http://<EXTERNAL-IP>:8080
-```
+Use the external IP to access the OpenFaaS gateway UI at `http://<EXTERNAL-IP>:8080`.
 
 ### Deploy functions
 
@@ -161,7 +156,7 @@ Monitor the auto-scaling with Weave Cloud Explore:
 
 ### Setup basic authentication
 
-Create user and password secret:
+Create a basic-auth secret with your username and password:
 
 ```bash
 kubectl create secret generic basic-auth \
@@ -169,7 +164,7 @@ kubectl create secret generic basic-auth \
     --from-literal=password=admin
 ```
 
-Deploy Caddy service:
+Deploy Caddy as a reverse proxy for OpenFaaS gateway:
 
 ```bash
 kubectl apply -f caddy.yml
@@ -182,11 +177,7 @@ kubectl expose deployment caddy --type=LoadBalancer --name=caddy-lb
 ```
 
 Wait for an external IP to be allocated and use it to access the OpenFaaS gateway UI 
-with your credentials:
-
-```bash
-#http://<EXTERNAL-IP>
-```
+with your credentials at `http://<EXTERNAL-IP>`.
 
 Login with the CLI:
 
