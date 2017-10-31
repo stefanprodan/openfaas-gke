@@ -122,4 +122,23 @@ hey -n 1000 -c 10 -m POST -d "test" http://<EXTERNAL-IP>/function/nodeinfo
 
 ![scaling](https://github.com/stefanprodan/openfaas-gke/blob/master/screens/scaling.png)
 
+### Setup basic authentication
 
+Deploy Caddy service:
+
+```bash
+kubectl apply -f caddy.yml
+```
+
+Expose Caddy on the internet:
+
+```bash
+kubectl expose deployment caddy --type=LoadBalancer --name=caddy-lb
+```
+
+Wait for an external IP to be allocated and use it to access the OpenFaaS gateway UI 
+credentials admin/admin:
+
+```bash
+#http://<EXTERNAL-IP>
+```
