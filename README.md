@@ -88,73 +88,17 @@ kubectl apply -n kube-system -f \
 "https://cloud.weave.works/k8s.yaml?k8s-version=$(kubectl version | base64 | tr -d '\n')&t=<WEAVE-TOKEN>"
 ```
 
-### Deploy OpenFaaS
+Navigate to Weave Cloud Explore to inspect your K8S cluster:
+
+![nodes](https://github.com/stefanprodan/openfaas-gke/blob/master/screens/nodes.png)
+
+### Deploy OpenFaaS with  basic authentication
 
 Deploy OpenFaaS services in the default namespace:
 
 ```bash
 kubectl apply -f ./faas.yml
 ```
-
-View OpenFaaS pods:
-
-```bash
-kubectl -n default get pods
-```
-
-Expose the gateway service on the internet:
-
-```bash
-kubectl expose deployment gateway --type=LoadBalancer --name=gateway-lb
-```
-
-Wait for an external IP to be allocated:
-
-```bash
-kubectl get services gateway-lb
-```
-
-Use the external IP to access the OpenFaaS gateway UI at `http://<EXTERNAL-IP>:8080`.
-
-### Deploy functions
-
-Install OpenFaaS CLI:
-
-```bash
-curl -sL cli.openfaas.com | sudo sh
-```
-
-Deploy nodeinfo function:
-
-```bash
-faas-cli deploy --name=nodeinfo \
-    --image=functions/nodeinfo:latest \
-    --fprocess="node main.js" \
-    --network=default \
-    --gateway=http://<EXTERNAL-IP>:8080 
-```
-
-Invoke nodeinfo function:
-
-```bash
-echo -n "" | faas-cli invoke nodeinfo --gateway http://<EXTERNAL-IP>:8080
-```
-
-Load testing:
-
-```bash
-#install hey
-go get -u github.com/rakyll/hey
-
-#do 10K requests 
-hey -n 1000 -c 10 -m POST -d "test" http://<EXTERNAL-IP>/function/nodeinfo
-```
-
-Monitor the auto-scaling with Weave Cloud Explore:
-
-![scaling](https://github.com/stefanprodan/openfaas-gke/blob/master/screens/scaling.png)
-
-### Setup basic authentication
 
 Create a basic-auth secret with your username and password:
 
@@ -179,14 +123,46 @@ kubectl expose deployment caddy --type=LoadBalancer --name=caddy-lb
 Wait for an external IP to be allocated and use it to access the OpenFaaS gateway UI 
 with your credentials at `http://<EXTERNAL-IP>`.
 
+Install OpenFaaS CLI:
+
+```bash
+curl -sL cli.openfaas.com | sudo sh
+```
+
 Login with the CLI:
 
 ```bash
 faas-cli login -u admin -p admin --gateway http://<EXTERNAL-IP>
 ```
 
-List all functions:
+### Deploy functions
+
+Deploy nodeinfo function:
 
 ```bash
-faas-cli list --gateway http://<EXTERNAL-IP>
+faas-cli deploy --name=nodeinfo \
+    --image=functions/nodeinfo:latest \
+    --fprocess="node main.js" \
+    --network=default \
+    --gateway=http://<EXTERNAL-IP>:8080 
 ```
+
+Invoke nodeinfo function:
+
+```bash
+echo -n "" | faas-cli invoke nodeinfo --gateway http://<EXTERNAL-IP>:8080
+```
+
+Load testing:
+
+```bash
+#install hey
+go get -u github.com/rakyll/hey
+
+#do 10K requests 
+hey -n 1000 -c 10 -m POST -d "test" http://admin:admin@<EXTERNAL-IP>/function/nodeinfo
+```
+
+Monitor the auto-scaling with Weave Cloud Explore:
+
+![scaling](https://github.com/stefanprodan/openfaas-gke/blob/master/screens/scaling.png)
