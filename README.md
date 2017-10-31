@@ -1,19 +1,35 @@
-# openfaas-gke
+# OpenFaaS GKE
 
-OpenFaaS on Google Container Engine
+A step by step guide on running OpenFaaS with Kubernetes 1.8.1 on Google Cloud.
 
-### GKE Setup
+### Create a GCP project
 
-Before running the project you'll have to create a GCP service account key. 
+Login into GCP and create a new project named openfaas. IF you don't have a GCP account you can apply for 
+trial. After creating the project enable billing and wait for API and related services to be enabled.
+Download and install the Google Cloud SDK from this [page](https://cloud.google.com/sdk/). After installing 
+the SDK run `gcloud init` and set the default zone to `europe-west3-a`.
+
+Install `kubectl` using `gcloud`:
+
+```bash
+gcloud components install kubectl
+```
+
+Clone `openfaas-gke` repo:
+
+```bash
+git clone https://github.com/stefanprodan/openfaas-gke
+cd openfaas-gke
+```
+
 Go to _Google Cloud Platform -> API Manager -> Credentials -> Create Credentials -> Service account key_ and 
 chose JSON as key type. Rename the file to `account.json` and put it in the project root.
 Add your SSH key under _Compute Engine -> Metadata -> SSH Keys_, also create a metadata entry named `sshKeys` 
 with your public SSH key as value.
 
-```bash
-gcloud init
-gcloud components install kubectl
-```
+### Create a Kubernetes cluster
+
+Create a multi-zone cluster:
 
 ```bash
 gcloud container clusters create demo \
@@ -25,15 +41,19 @@ gcloud container clusters create demo \
     --scopes=default,storage-rw
 ```
 
+You can delete the cluster at any time with:
+
 ```bash
 gcloud container clusters delete demo -z=europe-west3-a 
 ```
 
-### Setup credentials
+Setup credentials for `kubectl`:
 
 ```bash
 gcloud container clusters get-credentials demo
 ```
+
+Create a cluster admin user:
 
 ```bash
 kubectl create clusterrolebinding "cluster-admin-$(whoami)" \
@@ -56,11 +76,13 @@ kubectl proxy --port=9099
 # http://localhost:9099/ui
 ```
 
-### Weave Cloud instrumentation
+### Create a Weave Cloud project
 
 Now that you have a Kubernetes cluster up and running you can start monitoring it with Weave Cloud. 
 You'll need a Weave Could service token, if you don't have a Weave token go 
 to [Weave Cloud](https://cloud.weave.works/) and sign up for a trial account. 
+
+Deploy Weave Cloud agents:
 
 ```bash
 kubectl apply -n kube-system -f \
@@ -69,17 +91,19 @@ kubectl apply -n kube-system -f \
 
 ### Deploy OpenFaaS
 
+Deploy OpenFaaS services:
+
 ```bash
 kubectl apply -f ./faas.yml
 ```
 
-View OpenFaaS pods
+View OpenFaaS pods:
 
 ```bash
 kubectl -n default get pods
 ```
 
-Expose the gateway service:
+Expose the gateway service on the internet:
 
 ```bash
 kubectl expose deployment gateway --type=LoadBalancer --name=gateway-lb
