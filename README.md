@@ -163,6 +163,16 @@ go get -u github.com/rakyll/hey
 hey -n 1000 -c 10 -m POST -d "test" http://admin:admin@<EXTERNAL-IP>/function/nodeinfo
 ```
 
-Monitor the auto-scaling with Weave Cloud Explore:
+In the Weave Cloud UI under Explore you'll see how OpenFaaS scales up the nodeinfo service:
 
 ![scaling](https://github.com/stefanprodan/openfaas-gke/blob/master/screens/scaling.png)
+
+Weave Cloud extends Prometheus by providing a distributed, multi-tenant, horizontally scalable version of Prometheus. 
+It hosts the scraped Prometheus metrics for you, so that you don’t have to worry about storage or backups.
+
+You can monitor your OpenFaaS setup by writing PromQL queries in the Weave Cloud Monitor GUI:
+
+![cortex](https://github.com/stefanprodan/swarm-gcp/blob/master/screens/openfaas-metrics.png)
+
+If you need more than what the Weave Cloud GUI offers, a Grafana Dashboard browser plugin is available that can be 
+downloaded from the [Google Chrome store](https://chrome.google.com/webstore/detail/weave-cloud/aihaocdgpjomchhocbnlhoaildnoollo).
