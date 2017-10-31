@@ -30,14 +30,20 @@ spec:
     spec:
       containers:
       - name: caddy
-        image: stefanprodan/caddy:latest
+        image: stefanprodan/caddy:0.10.10
         imagePullPolicy: Always
         command: ["caddy", "-agree", "--conf", "/Caddyfile"]
         env:
         - name: ADMIN_USER
-          value: admin
+          valueFrom:
+            secretKeyRef:
+              name: basic-auth
+              key: user
         - name: ADMIN_PASSWORD
-          value: admin
+          valueFrom:
+            secretKeyRef:
+              name: basic-auth
+              key: password
         ports:
         - containerPort: 80
           protocol: TCP

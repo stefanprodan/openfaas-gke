@@ -56,6 +56,17 @@ kubectl proxy --port=9099
 # http://localhost:9099/ui
 ```
 
+### Weave Cloud instrumentation
+
+Now that you have a Kubernetes cluster up and running you can start monitoring it with Weave Cloud. 
+You'll need a Weave Could service token, if you don't have a Weave token go 
+to [Weave Cloud](https://cloud.weave.works/) and sign up for a trial account. 
+
+```bash
+kubectl apply -n kube-system -f \
+"https://cloud.weave.works/k8s.yaml?k8s-version=$(kubectl version | base64 | tr -d '\n')&t=<WEAVE-TOKEN>"
+```
+
 ### Deploy OpenFaaS
 
 ```bash
@@ -120,9 +131,19 @@ go get -u github.com/rakyll/hey
 hey -n 1000 -c 10 -m POST -d "test" http://<EXTERNAL-IP>/function/nodeinfo
 ```
 
+Monitor the auto-scaling with Weave Cloud Explore:
+
 ![scaling](https://github.com/stefanprodan/openfaas-gke/blob/master/screens/scaling.png)
 
 ### Setup basic authentication
+
+Create user and password secret:
+
+```bash
+kubectl create secret generic basic-auth \
+    --from-literal=user=admin \
+    --from-literal=password=admin
+```
 
 Deploy Caddy service:
 
@@ -137,8 +158,20 @@ kubectl expose deployment caddy --type=LoadBalancer --name=caddy-lb
 ```
 
 Wait for an external IP to be allocated and use it to access the OpenFaaS gateway UI 
-credentials admin/admin:
+with your credentials:
 
 ```bash
 #http://<EXTERNAL-IP>
+```
+
+Login with the CLI:
+
+```bash
+faas-cli login -u admin -p admin --gateway http://<EXTERNAL-IP>
+```
+
+List all functions:
+
+```bash
+faas-cli list --gateway http://<EXTERNAL-IP>
 ```
