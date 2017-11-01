@@ -1,6 +1,6 @@
 # OpenFaaS GKE
 
-A step by step guide on running OpenFaaS with Kubernetes 1.8.1 on Google Cloud.
+A step by step guide on running OpenFaaS with Kubernetes 1.8 on Google Cloud.
 
 ### Create a GCP project
 
@@ -92,7 +92,7 @@ Navigate to Weave Cloud Explore to inspect your K8S cluster:
 
 ![nodes](https://github.com/stefanprodan/openfaas-gke/blob/master/screens/nodes.png)
 
-### Deploy OpenFaaS with  basic authentication
+### Deploy OpenFaaS with basic authentication
 
 Deploy OpenFaaS services in the default namespace:
 
@@ -100,7 +100,11 @@ Deploy OpenFaaS services in the default namespace:
 kubectl apply -f ./faas.yml
 ```
 
-Create a basic-auth secret with your username and password:
+This will create the pods, deployments and services for OpenFaaS gateway, faas-netesd (K8S controller), 
+Prometheus and Alert Manager.
+
+Before exposing OpenFaaS on the internet we need to setup authentication. 
+First create a basic-auth secret with your username and password:
 
 ```bash
 kubectl create secret generic basic-auth \
@@ -133,6 +137,13 @@ Login with the CLI:
 
 ```bash
 faas-cli login -u admin -p admin --gateway http://<EXTERNAL-IP>
+```
+
+If you want to avoid having your password in bash history, you could create a text file with it and use that 
+along with the `--password-stdin` flag:
+
+```bash
+cat ~/faas_pass.txt | faas-cli login -u admin --password-stdin --gateway http://<EXTERNAL-IP>
 ```
 
 ### Deploy functions
