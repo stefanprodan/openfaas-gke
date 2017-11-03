@@ -107,7 +107,7 @@ Before exposing OpenFaaS on the internet we need to setup authentication.
 First create a basic-auth secret with your username and password:
 
 ```bash
-kubectl create secret generic basic-auth \
+kubectl -n openfaas create secret generic basic-auth \
     --from-literal=user=admin \
     --from-literal=password=admin
 ```
@@ -125,7 +125,7 @@ kubectl expose deployment caddy --type=LoadBalancer --name=caddy-lb
 ```
 
 Wait for an external IP to be allocated and use it to access the OpenFaaS gateway UI 
-with your credentials at `http://<EXTERNAL-IP>`.
+with your credentials at `http://<EXTERNAL-IP>`. You can get the external IP by running `kubectl get svc`.
 
 Install OpenFaaS CLI:
 
