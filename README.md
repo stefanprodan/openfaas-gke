@@ -94,7 +94,7 @@ Navigate to Weave Cloud Explore to inspect your K8S cluster:
 
 ### Deploy OpenFaaS with basic authentication
 
-Deploy OpenFaaS services in the default namespace:
+Deploy OpenFaaS services in the `openfaas` namespace:
 
 ```bash
 kubectl apply -f ./faas.yml
@@ -121,7 +121,9 @@ kubectl apply -f caddy.yml
 Expose Caddy on the internet:
 
 ```bash
-kubectl expose deployment caddy --type=LoadBalancer --name=caddy-lb
+kubectl  -n openfaas expose deployment caddy \
+    --type=LoadBalancer \
+    --name=caddy-lb
 ```
 
 Wait for an external IP to be allocated and use it to access the OpenFaaS gateway UI 
@@ -146,22 +148,28 @@ along with the `--password-stdin` flag:
 cat ~/faas_pass.txt | faas-cli login -u admin --password-stdin --gateway http://<EXTERNAL-IP>
 ```
 
+You can logout at any time with:
+
+```bash
+faas-cli logout --gateway http://<EXTERNAL-IP>
+```
+
 ### Deploy functions
 
-Deploy nodeinfo function:
+Deploy a function in the `openfaas-fn` namespace:
 
 ```bash
 faas-cli deploy --name=nodeinfo \
     --image=functions/nodeinfo:latest \
     --fprocess="node main.js" \
-    --network=default \
+    --network=openfaas-fn \
     --gateway=http://<EXTERNAL-IP> 
 ```
 
-Invoke nodeinfo function:
+Invoke the function:
 
 ```bash
-echo -n "" | faas-cli invoke nodeinfo --gateway http://<EXTERNAL-IP>
+echo -n "" | faas-cli invoke nodeinfo --gateway=http://<EXTERNAL-IP>
 ```
 
 Load testing:

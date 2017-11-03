@@ -8,15 +8,13 @@ get_ingress_ip() {
     kubectl -n openfaas describe service caddy-lb | grep Ingress | awk '{ print $NF }'
 }
 
-gcloud config get-value core/account
-
-kubectl apply -f ./faas-ns.yml
+kubectl apply -f ./faas.yml
 
 kubectl -n openfaas create secret generic basic-auth \
     --from-literal=user=admin \
     --from-literal=password=admin
 
-kubectl -n openfaas apply -f ./caddy-ns.yml
+kubectl apply -f ./caddy.yml
 
 kubectl -n openfaas expose deployment caddy \
     --type=LoadBalancer \
