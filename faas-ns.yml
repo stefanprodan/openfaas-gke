@@ -1,0 +1,329 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openfaas
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: faas-netesd
+  namespace: openfaas
+  labels:
+    app: faas-netesd
+spec:
+  type: NodePort
+  ports:
+    - port: 8080
+      protocol: TCP
+      targetPort: 8080
+      nodePort: 31111
+  selector:
+    app: faas-netesd
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: faas-controller
+  namespace: openfaas
+---
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: faas-netesd
+  namespace: openfaas
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: faas-netesd
+  template:
+    metadata:
+      labels:
+        app: faas-netesd
+    spec:
+      serviceAccountName: faas-controller
+      containers:
+      - name: faas-netesd
+        image: functions/faas-netesd:0.3.3
+        imagePullPolicy: Always
+        env:
+        - name: function_namespace
+          value: openfaas
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: faas-controller
+  namespace: openfaas
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - services
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - delete
+  - update
+- apiGroups:
+  - extensions
+  resources:
+  - deployments
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - delete
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: faas-controller
+  namespace: openfaas
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: faas-controller
+subjects:
+- kind: ServiceAccount
+  name: faas-controller
+  namespace: openfaas
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+  namespace: openfaas
+  labels:
+    app: gateway
+spec:
+  type: NodePort
+  ports:
+    - port: 8080
+      protocol: TCP
+      targetPort: 8080
+      nodePort: 31112
+  selector:
+    app: gateway
+---
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: gateway
+  namespace: openfaas
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      containers:
+      - name: gateway
+        image: functions/gateway:0.6.7
+        imagePullPolicy: Always
+        env:
+        - name: functions_provider_url
+          value: "http://faas-netesd.openfaas.svc.cluster.local:8080/"
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+  namespace: openfaas
+  labels:
+    app: prometheus
+spec:
+  type: NodePort
+  ports:
+    - port: 9090
+      protocol: TCP
+      targetPort: 9090
+      nodePort: 31119
+  selector:
+    app: prometheus
+---
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: prometheus
+  namespace: openfaas
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      containers:
+      - name: prometheus
+        image: prom/prometheus:v1.8.1
+        command: ["prometheus","-config.file=/etc/prometheus/prometheus.yml", "-storage.local.path=/prometheus", "--alertmanager.url=http://alertmanager.default:9093"]
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 9090
+          protocol: TCP
+        volumeMounts:
+        - mountPath: /etc/prometheus/prometheus.yml
+          name: prometheus-config
+          subPath: prometheus.yml
+        - mountPath: /etc/prometheus/alert.rules
+          name: prometheus-config
+          subPath: alert.rules
+      volumes:
+        - name: prometheus-config
+          configMap:
+            name: prometheus-config
+            items:
+              - key: prometheus.yml
+                path: prometheus.yml
+                mode: 0644
+              - key: alert.rules
+                path: alert.rules
+                mode: 0644
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alertmanager
+  namespace: openfaas
+  labels:
+    app: alertmanager
+spec:
+  type: NodePort
+  ports:
+    - port: 9093
+      protocol: TCP
+      targetPort: 9093
+      nodePort: 31113
+  selector:
+    app: alertmanager
+---
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: alertmanager
+  namespace: openfaas
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: alertmanager
+  template:
+    metadata:
+      labels:
+        app: alertmanager
+    spec:
+      containers:
+      - name: alertmanager
+        image: prom/alertmanager:v0.9.1
+        imagePullPolicy: Always
+        command: ["/bin/alertmanager","-config.file=/alertmanager.yml", "-storage.path=/alertmanager"]
+        ports:
+        - containerPort: 9003
+          protocol: TCP
+        volumeMounts:
+        - mountPath: /alertmanager.yml
+          name: alertmanager-config
+          subPath: alertmanager.yml
+      volumes:
+        - name: alertmanager-config
+          configMap:
+            name: alertmanager-config
+            items:
+              - key: alertmanager.yml
+                path: alertmanager.yml
+                mode: 0644
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  labels:
+    app: prometheus
+  name: prometheus-config
+  namespace: openfaas
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval:     15s
+      evaluation_interval: 15s
+      external_labels:
+          monitor: 'faas-monitor'
+    rule_files:
+        - 'alert.rules'
+    scrape_configs:
+      - job_name: 'prometheus'
+        scrape_interval: 5s
+        static_configs:
+          - targets: ['localhost:9090']
+      - job_name: "gateway"
+        scrape_interval: 5s
+        dns_sd_configs:
+          - names: ['gateway']
+            port: 8080
+            type: A
+            refresh_interval: 5s
+  alert.rules: |
+    ALERT service_down
+      IF up == 0
+    ALERT APIHighInvocationRate
+      IF sum ( rate(gateway_function_invocation_total{code="200"}[10s]) ) by (function_name) > 5
+      FOR 5s
+      LABELS {
+        service = "gateway",
+        severity = "major",
+        value = "{{$value}}"
+      }
+      ANNOTATIONS {
+        summary = "High invocation total on {{ $labels.instance }}",
+        description =  "High invocation total on {{ $labels.instance }}"
+      }
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  labels:
+    app: alertmanager
+  name: alertmanager-config
+  namespace: openfaas
+data:
+  alertmanager.yml: |
+    route:
+      group_by: ['alertname', 'cluster', 'service']
+      group_wait: 5s
+      group_interval: 10s
+      repeat_interval: 30s
+      receiver: scale-up
+      routes:
+      - match:
+          service: gateway
+          receiver: scale-up
+          severity: major
+    inhibit_rules:
+    - source_match:
+        severity: 'critical'
+      target_match:
+        severity: 'warning'
+      # Apply inhibition if the alertname is the same.
+      equal: ['alertname', 'cluster', 'service']
+    receivers:
+    - name: 'scale-up'
+      webhook_configs:
+        - url: http://gateway:8080/system/alert
+          send_resolved: true
