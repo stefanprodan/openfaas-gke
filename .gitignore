@@ -17,3 +17,6 @@
 
 # GCP key
 account.json
+
+# OpenFaaS CLI build
+build/
