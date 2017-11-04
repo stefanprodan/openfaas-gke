@@ -150,7 +150,7 @@ spec:
         imagePullPolicy: Always
         env:
         - name: functions_provider_url
-          value: "http://faas-netesd.openfaas.svc.cluster.local:8080/"
+          value: "http://faas-netesd:8080/"
         ports:
         - containerPort: 8080
           protocol: TCP
@@ -190,8 +190,12 @@ spec:
       containers:
       - name: prometheus
         image: prom/prometheus:v1.8.1
-        command: ["prometheus","-config.file=/etc/prometheus/prometheus.yml", "-storage.local.path=/prometheus", "--alertmanager.url=http://alertmanager.default:9093"]
         imagePullPolicy: Always
+        command:
+          - prometheus
+          - -config.file=/etc/prometheus/prometheus.yml
+          - -storage.local.path=/prometheus
+          - --alertmanager.url=http://alertmanager.openfaas:9093
         ports:
         - containerPort: 9090
           protocol: TCP
@@ -250,9 +254,12 @@ spec:
       - name: alertmanager
         image: prom/alertmanager:v0.9.1
         imagePullPolicy: Always
-        command: ["/bin/alertmanager","-config.file=/alertmanager.yml", "-storage.path=/alertmanager"]
+        command:
+          - alertmanager
+          - -config.file=/alertmanager.yml
+          - -storage.path=/alertmanager
         ports:
-        - containerPort: 9003
+        - containerPort: 9093
           protocol: TCP
         volumeMounts:
         - mountPath: /alertmanager.yml
@@ -336,7 +343,6 @@ data:
         severity: 'critical'
       target_match:
         severity: 'warning'
-      # Apply inhibition if the alertname is the same.
       equal: ['alertname', 'cluster', 'service']
     receivers:
     - name: 'scale-up'
