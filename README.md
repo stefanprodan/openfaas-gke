@@ -195,3 +195,125 @@ You can monitor your OpenFaaS setup by writing PromQL queries in the Weave Cloud
 
 If you need more than what the Weave Cloud GUI offers, a Grafana Dashboard browser plugin is available that can be 
 downloaded from the [Google Chrome store](https://chrome.google.com/webstore/detail/weave-cloud/aihaocdgpjomchhocbnlhoaildnoollo).
+
+### Create functions
+
+With OpenFaaS CLI you can chose between using a programming language template where you only need to provide a 
+handler file, or a Docker that you can build yourself. There are many supported languages like 
+Go, JS (node), Python, C# and Ruby.
+
+Lets create a function with Go that will fetch the SSL/TLS certificate info for a given URL.
+
+First create a directory for your functions under `GOPATH`:
+
+```bash
+mkdir -p $GOPATH/src/functions
+```
+
+Inside the `functions` dir use the CLI to create the `certinfo` function:
+
+```bash
+cd $GOPATH/src/functions
+faas-cli new --lang go certinfo
+```
+
+Open `handler.go` in your favorite editor and add the certificate fetching code:
+
+```go
+package function
+
+import (
+	"crypto/tls"
+	"fmt"
+	"net"
+	"time"
+)
+
+func Handle(req []byte) string {
+	address := string(req) + ":443"
+	ipConn, err := net.DialTimeout("tcp", address, 2*time.Second)
+	if err != nil {
+		return fmt.Sprintf("Dial error: %v", err)
+	}
+	defer ipConn.Close()
+	conn := tls.Client(ipConn, &tls.Config{
+		InsecureSkipVerify: true,
+	})
+	if err = conn.Handshake(); err != nil {
+		return fmt.Sprintf("Handshake error: %v", err)
+	}
+	defer conn.Close()
+	addr := conn.RemoteAddr()
+	host, port, err := net.SplitHostPort(addr.String())
+	if err != nil {
+		return fmt.Sprintf("Error: %v", err)
+	}
+	cert := conn.ConnectionState().PeerCertificates[0]
+
+	return fmt.Sprintf("Host %v\nPort %v\nIssuer %v\nCommonName %v\nNotBefore %v\nNotAfter %v\nSANs %v\n",
+		host, port, cert.Issuer.CommonName, cert.Subject.CommonName, cert.NotBefore, cert.NotAfter, cert.DNSNames)
+}
+```
+
+Next to `handler.go` create `handler_test.go` with the following content:
+
+```go
+package function
+
+import (
+	"regexp"
+	"testing"
+)
+
+func TestHandleReturnsCorrectResponse(t *testing.T) {
+	expected := "Google Internet Authority"
+	resp := Handle([]byte("google.com"))
+
+	r := regexp.MustCompile("(?m:" + expected + ")")
+	if !r.MatchString(resp) {
+		t.Fatalf("\nExpected: \n%v\nGot: \n%v", expected, resp)
+	}
+}
+```
+
+Now let's build the function into a docker image:
+
+```bash
+faas-cli build -f certinfo.yml
+```
+
+This will check your code for proper formatting with `gofmt`, run `go build & test` and pack your binary into 
+an alpine image. If everything goes well, you'll have a local Docker image named `certinfo:latest`. 
+
+Let's push this image to Docker Hub. First create a public repository named `certinfo`, login to Docker Hub using 
+docker CLI and tag the image with your username:
+
+```bash
+docker login
+docker tag certinfo:latest stefanprodan/certinfo:latest
+docker push stefanprodan/certinfo:latest
+```
+
+Once the image is on Docker Hub you can deploy the function to your OpenFaaS GKE cluster:
+
+```bash
+faas-cli deploy --name=certinfo \
+    --image=stefanprodan/certinfo:latest \
+    --network=openfaas-fn \
+    --gateway=http://<EXTERNAL-IP>
+```
+
+Invoke certinfo with:
+
+```bash
+$ echo -n "www.openfaas.com" | faas-cli invoke certinfo --gateway=<EXTERNAL-IP>
+
+Host 147.75.74.69
+Port 443
+Issuer Let's Encrypt Authority X3
+CommonName www.openfaas.com
+NotBefore 2017-10-06 23:54:56 +0000 UTC
+NotAfter 2018-01-04 23:54:56 +0000 UTC
+SANs [www.openfaas.com]
+```
+
