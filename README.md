@@ -186,6 +186,15 @@ In the Weave Cloud UI under Explore you'll see how OpenFaaS scales up the nodein
 
 ![scaling](https://github.com/stefanprodan/openfaas-gke/blob/master/screens/scaling.png)
 
+You can also monitor the scale up/down events with GCP Stackdrive Logs using this advanced filter:
+
+```bash
+resource.type: "container"
+logName: "projects/openfaas/logs/gateway"  
+labels."container.googleapis.com/namespace_name": "openfaas"
+textPayload: "alerts"
+```
+
 Weave Cloud extends Prometheus by providing a distributed, multi-tenant, horizontally scalable version of Prometheus. 
 It hosts the scraped Prometheus metrics for you, so that you don’t have to worry about storage or backups.
 
