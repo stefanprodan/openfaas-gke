@@ -153,7 +153,7 @@ spec:
         imagePullPolicy: Always
         env:
         - name: functions_provider_url
-          value: "http://faas-netesd:8080/"
+          value: "http://faas-netesd.openfaas:8080/"
         ports:
         - containerPort: 8080
           protocol: TCP
@@ -359,5 +359,5 @@ data:
     receivers:
     - name: 'scale-up'
       webhook_configs:
-        - url: http://gateway:8080/system/alert
+        - url: http://gateway.openfaas:8080/system/alert
           send_resolved: true
