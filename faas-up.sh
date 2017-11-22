@@ -27,5 +27,6 @@ until [[ "$(get_ingress_ip)" ]]
  echo -n ".";
 done
 
+echo ""
 echo "External IP: $(get_ingress_ip)"
 
