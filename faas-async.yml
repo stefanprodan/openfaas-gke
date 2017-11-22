@@ -49,7 +49,7 @@ spec:
           protocol: TCP
         resources:
           limits:
-            memory: 128Mi
+            memory: 1024Mi
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -148,10 +148,14 @@ spec:
           value: "nats.openfaas"
         - name: faas_nats_port
           value: "4222"
+        - name: write_timeout
+          value: "60"
+        - name: read_timeout
+          value: "60"
         ports:
         - containerPort: 8080
           protocol: TCP
         resources:
           limits:
-            memory: 128Mi
+            memory: 1024Mi
 
