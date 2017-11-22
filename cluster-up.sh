@@ -5,7 +5,7 @@ set -o pipefail
 set -o nounset
 
 gcloud container clusters create demo \
-    --cluster-version=1.8.1-gke.1 \
+    --cluster-version=1.8.3-gke.0 \
     --zone=europe-west3-a \
     --additional-zones=europe-west3-b,europe-west3-c \
     --num-nodes=1 \
