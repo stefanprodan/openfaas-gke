@@ -13,3 +13,7 @@ functions:
     lang: Dockerfile
     handler: ./normalisecolor
     image: alexellis2/normalisecolor:0.2
+  nodeinfo:
+    lang: nodejs
+    handler: node main.js
+    image: functions/nodeinfo:latest
