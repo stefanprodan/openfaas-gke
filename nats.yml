@@ -66,7 +66,7 @@ spec:
     spec:
       containers:
       - name:  queue-worker
-        image: functions/queue-worker:0.1
+        image: functions/queue-worker:0.3
         imagePullPolicy: Always
         resources:
           limits:
