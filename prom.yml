@@ -6,12 +6,11 @@ metadata:
   labels:
     app: prometheus
 spec:
-  type: NodePort
+  type: ClusterIP
   ports:
     - port: 9090
       protocol: TCP
       targetPort: 9090
-      nodePort: 31119
   selector:
     app: prometheus
 ---
@@ -72,12 +71,11 @@ metadata:
   labels:
     app: alertmanager
 spec:
-  type: NodePort
+  type: ClusterIP
   ports:
     - port: 9093
       protocol: TCP
       targetPort: 9093
-      nodePort: 31113
   selector:
     app: alertmanager
 ---

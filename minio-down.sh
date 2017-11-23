@@ -6,5 +6,4 @@ set -o nounset
 
 kubectl delete -f ./minio.yml
 kubectl -n openfaas-fn delete service minio-lb
-
-gcloud compute disks delete minio-disk
+kubectl -n openfaas-fn delete secret minio-auth
