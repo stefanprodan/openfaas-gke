@@ -1,0 +1,49 @@
+---
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: prometheus
+  namespace: openfaas
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      containers:
+      - name: prometheus
+        image: prom/prometheus:v1.8.2
+        imagePullPolicy: Always
+        command:
+          - prometheus
+          - -config.file=/etc/prometheus/prometheus.yml
+          - -storage.local.path=/prometheus
+          - --alertmanager.url=http://alertmanager.openfaas:9093
+        ports:
+        - containerPort: 9090
+          protocol: TCP
+        resources:
+          limits:
+            memory: 1Gi
+        volumeMounts:
+        - mountPath: /etc/prometheus/prometheus.yml
+          name: prometheus-config
+          subPath: prometheus.yml
+        - mountPath: /etc/prometheus/alert.rules
+          name: prometheus-config
+          subPath: alert.rules
+      volumes:
+        - name: prometheus-config
+          configMap:
+            name: prometheus-config
+            items:
+              - key: prometheus.yml
+                path: prometheus.yml
+                mode: 0644
+              - key: alert.rules
+                path: alert.rules
+                mode: 0644

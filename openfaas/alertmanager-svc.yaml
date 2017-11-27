@@ -1,0 +1,18 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alertmanager
+  namespace: openfaas
+  annotations:
+    prometheus.io.scrape: 'false'
+  labels:
+    app: alertmanager
+spec:
+  type: ClusterIP
+  ports:
+    - port: 9093
+      protocol: TCP
+      targetPort: 9093
+  selector:
+    app: alertmanager

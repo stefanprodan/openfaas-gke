@@ -1,0 +1,30 @@
+---
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: faas-netesd
+  namespace: openfaas
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: faas-netesd
+  template:
+    metadata:
+      labels:
+        app: faas-netesd
+    spec:
+      serviceAccountName: faas-controller
+      containers:
+      - name: faas-netesd
+        image: functions/faas-netesd:0.3.6-rc1
+        imagePullPolicy: Always
+        env:
+        - name: function_namespace
+          value: openfaas-fn
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        resources:
+          limits:
+            memory: 1024Mi

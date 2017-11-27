@@ -1,0 +1,34 @@
+---
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: nats
+  namespace: openfaas
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nats
+  template:
+    metadata:
+      labels:
+        app: nats
+    spec:
+      containers:
+      - name:  nats
+        image: nats-streaming:0.6.0
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 4222
+          protocol: TCP
+        - containerPort: 8222
+          protocol: TCP
+        command: ["/nats-streaming-server"]
+        args:
+          - --store
+          - memory
+          - --cluster_id
+          - faas-cluster
+        resources:
+          limits:
+            memory: 128Mi

@@ -1,0 +1,38 @@
+---
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: queue-worker
+  namespace: openfaas
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: queue-worker
+  template:
+    metadata:
+      labels:
+        app: queue-worker
+    spec:
+      containers:
+      - name:  queue-worker
+        image: functions/queue-worker:0.3.2-rc1
+        imagePullPolicy: Always
+        env:
+        - name: faas_function_suffix
+          value: ".openfaas-fn"
+        - name: faas_gateway_address
+          value: "gateway.openfaas"
+        - name: faas_nats_address
+          value: "nats.openfaas"
+        - name: early_ack
+          value: "true"
+        - name: ack_wait
+          value: "120s"
+        - name: max_inflight
+          value: "1"
+        - name: faas_print_body
+          value: "true"
+        resources:
+          limits:
+            memory: 128Mi
