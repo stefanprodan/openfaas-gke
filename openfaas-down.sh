@@ -4,4 +4,4 @@ set -o errexit
 set -o pipefail
 set -o nounset
 
-kubectl delete -f ./ns.yml
+kubectl delete -f ./namespaces.yaml
