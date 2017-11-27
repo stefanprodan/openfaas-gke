@@ -96,6 +96,12 @@ Navigate to Weave Cloud Explore to inspect your K8S cluster:
 
 ### Deploy OpenFaaS with basic authentication
 
+Create the `openfaas` and `openfaas-fn` namespaces:
+
+```bash
+kubectl apply -f ./namespaces.yaml
+```
+
 Deploy OpenFaaS services in the `openfaas` namespace:
 
 ```bash
