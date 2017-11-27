@@ -32,8 +32,10 @@ with your public SSH key as value.
 Create a three nodes cluster with each node on a different zone:
 
 ```bash
+k8s_version=$(gcloud container get-server-config --format=json | jq -r '.validNodeVersions[0]')
+
 gcloud container clusters create demo \
-    --cluster-version=1.8.3-gke.0 \
+    --cluster-version=${k8s_version} \
     --zone=europe-west3-a \
     --additional-zones=europe-west3-b,europe-west3-c \
     --num-nodes=1 \
@@ -50,7 +52,7 @@ gcloud container clusters delete demo -z=europe-west3-a
 Setup credentials for `kubectl`:
 
 ```bash
-gcloud container clusters get-credentials demo
+gcloud container clusters get-credentials demo -z=europe-west3-a
 ```
 
 Create a cluster admin user:
@@ -97,11 +99,11 @@ Navigate to Weave Cloud Explore to inspect your K8S cluster:
 Deploy OpenFaaS services in the `openfaas` namespace:
 
 ```bash
-kubectl apply -f ./faas.yml
+kubectl apply -f ./openfaas
 ```
 
 This will create the pods, deployments and services for OpenFaaS gateway, faas-netesd (K8S controller), 
-Prometheus and Alert Manager.
+Prometheus, Alert Manager, Nats and the Queue worker.
 
 Before exposing OpenFaaS on the internet we need to setup authentication. 
 First create a basic-auth secret with your username and password:
@@ -115,19 +117,25 @@ kubectl -n openfaas create secret generic basic-auth \
 Deploy Caddy as a reverse proxy for OpenFaaS gateway:
 
 ```bash
-kubectl apply -f caddy.yml
-```
-
-Expose Caddy on the internet:
-
-```bash
-kubectl  -n openfaas expose deployment caddy \
-    --type=LoadBalancer \
-    --name=caddy-lb
+kubectl apply -f ./caddy
 ```
 
 Wait for an external IP to be allocated and use it to access the OpenFaaS gateway UI 
 with your credentials at `http://<EXTERNAL-IP>`. You can get the external IP by running `kubectl get svc`.
+
+```bash
+get_gateway_ip() {
+    kubectl -n openfaas describe service caddy-lb | grep Ingress | awk '{ print $NF }'
+}
+
+until [[ "$(get_gateway_ip)" ]]
+ do sleep 1;
+ echo -n ".";
+done
+echo "."
+gateway_ip=$(get_gateway_ip)
+echo "OpenFaaS Gateway IP: ${gateway_ip}"
+```
 
 Install OpenFaaS CLI:
 
@@ -160,7 +168,7 @@ Deploy a function in the `openfaas-fn` namespace:
 
 ```bash
 faas-cli deploy --name=nodeinfo \
-    --image=functions/nodeinfo:latest \
+    --image=functions/nodeinfo:burner \
     --fprocess="node main.js" \
     --network=openfaas-fn \
     --gateway=http://<EXTERNAL-IP> 
@@ -285,6 +293,20 @@ func TestHandleReturnsCorrectResponse(t *testing.T) {
 }
 ```
 
+Modify the certinfo.yml file and add your Docker Hub username to the image name:
+
+```yaml
+provider:
+  name: faas
+  gateway: http://localhost:8080
+
+functions:
+  certinfo:
+    lang: go
+    handler: ./certinfo
+    image: stefanprodan/certinfo
+```
+
 Now let's build the function into a docker image:
 
 ```bash
@@ -292,24 +314,27 @@ faas-cli build -f certinfo.yml
 ```
 
 This will check your code for proper formatting with `gofmt`, run `go build & test` and pack your binary into 
-an alpine image. If everything goes well, you'll have a local Docker image named `certinfo:latest`. 
+an alpine image. If everything goes well, you'll have a local Docker image named `username/certinfo:latest`. 
 
 Let's push this image to Docker Hub. First create a public repository named `certinfo`, login to Docker Hub using 
-docker CLI and tag the image with your username:
+docker CLI and push the image:
 
 ```bash
 docker login
-docker tag certinfo:latest stefanprodan/certinfo:latest
-docker push stefanprodan/certinfo:latest
+faas-cli push -f certinfo.yml
 ```
 
 Once the image is on Docker Hub you can deploy the function to your OpenFaaS GKE cluster:
 
 ```bash
-faas-cli deploy --name=certinfo \
-    --image=stefanprodan/certinfo:latest \
-    --network=openfaas-fn \
-    --gateway=http://<EXTERNAL-IP>
+faas-cli deploy -f certinfo.yml --gateway=http://<EXTERNAL-IP>
+```
+
+After deploying your functions you should disable Prometheus scraping by adding the following annotation:
+
+```bash
+kubectl -n openfaas-fn annotate services --all prometheus.io.scrape='false'
+kubectl -n openfaas-fn annotate pods --all prometheus.io.scrape='false'
 ```
 
 Invoke certinfo with:
