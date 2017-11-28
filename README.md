@@ -170,7 +170,7 @@ faas-cli logout --gateway http://<EXTERNAL-IP>
 
 ### Deploy functions
 
-Create a stack file named `nodeinfo.yml` with the following:
+Create a stack file named `stack.yml` containing two function:
 
 ```yaml
 provider:
@@ -182,17 +182,25 @@ functions:
     lang: nodejs
     handler: node main.js
     image: functions/nodeinfo:burner
+  echo:
+    lang: Dockerfile
+    handler: ./echo
+    image: functions/faas-echo:latest
 ```
 
-Deploy `nodeinfo` on OpenFaaS:
+Deploy `nodeinfo` and `echo` on OpenFaaS:
 
 ```bash
-faas-cli deploy -f certinfo.yml
+faas-cli deploy
 ```
 
-Invoke the function:
+The `deploy` command will look for a `stack.yml` file in the current directory and will deploy all functions in the 
+openfaas-fn namespace.
+
+Invoke the functions:
 
 ```bash
+echo -n "test" | faas-cli invoke echo --gateway=http://<EXTERNAL-IP>
 echo -n "" | faas-cli invoke nodeinfo --gateway=http://<EXTERNAL-IP>
 ```
 
