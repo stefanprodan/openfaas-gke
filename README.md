@@ -1,6 +1,9 @@
 # OpenFaaS GKE
 
-A step by step guide on running OpenFaaS with Kubernetes 1.8 on Google Cloud.
+OpenFaaS is a serverless framework that runs on top of Kubernetes. It comes with a built-in UI and a handy CLI that 
+takes you from scaffolding new functions to deploying them on your Kubernetes cluster. 
+
+What follows is a step by step guide on running OpenFaaS with Kubernetes 1.8 on Google Cloud.
 
 ### Create a GCP project
 
@@ -13,13 +16,6 @@ Install `kubectl` using `gcloud`:
 
 ```bash
 gcloud components install kubectl
-```
-
-Clone `openfaas-gke` repo:
-
-```bash
-git clone https://github.com/stefanprodan/openfaas-gke
-cd openfaas-gke
 ```
 
 Go to _Google Cloud Platform -> API Manager -> Credentials -> Create Credentials -> Service account key_ and 
@@ -95,6 +91,13 @@ Navigate to Weave Cloud Explore to inspect your K8S cluster:
 ![nodes](https://github.com/stefanprodan/openfaas-gke/blob/master/screens/nodes.png)
 
 ### Deploy OpenFaaS with basic authentication
+
+Clone `openfaas-gke` repo:
+
+```bash
+git clone https://github.com/stefanprodan/openfaas-gke
+cd openfaas-gke
+```
 
 Create the `openfaas` and `openfaas-fn` namespaces:
 
