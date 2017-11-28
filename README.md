@@ -2,18 +2,18 @@
 
 ![OpenFaaS](https://github.com/stefanprodan/openfaas-gke/blob/master/screens/banner.jpg)
 
-OpenFaaS is a serverless framework that runs on top of Kubernetes. It comes with a built-in UI and a handy CLI that 
-takes you from scaffolding new functions to deploying them on your Kubernetes cluster. What's special about OpenFaaS 
-is that you can package any executable as a function, as long as it runs in a Docker container it will work on OpenFaaS. 
+OpenFaaS is a serverless framework that runs on top of Kubernetes. It comes with a built-in UI and a handy CLI that
+takes you from scaffolding new functions to deploying them on your Kubernetes cluster. What's special about OpenFaaS
+is that you can package any executable as a function, and as long as it runs in a Docker container, it will work on OpenFaaS.
 
 What follows is a step by step guide on running OpenFaaS with Kubernetes 1.8 on Google Cloud.
 
 ### Create a GCP project
 
-Login into GCP and create a new project named openfaas. If you don't have a GCP account you can apply for 
-a free trial. After creating the project, enable billing and wait for API and related services to be enabled.
-Download and install the Google Cloud SDK from this [page](https://cloud.google.com/sdk/). After installing 
-the SDK run `gcloud init` and set the default project to `openfaas` and the default zone to `europe-west3-a`.
+Login to GCP and create a new project named openfaas. If you don't have a GCP account you can apply for
+a free trial. After creating the project, enable billing and wait for the API and related services to be enabled.
+Download and install the Google Cloud SDK from this [page](https://cloud.google.com/sdk/). After installing
+the SDK run `gcloud init` and then, set the default project to `openfaas` and the default zone to `europe-west3-a`.
 
 Install `kubectl` using `gcloud`:
 
@@ -21,14 +21,14 @@ Install `kubectl` using `gcloud`:
 gcloud components install kubectl
 ```
 
-Go to _Google Cloud Platform -> API Manager -> Credentials -> Create Credentials -> Service account key_ and 
-chose JSON as key type. Rename the file to `account.json` and put it in the project root.
-Add your SSH key under _Compute Engine -> Metadata -> SSH Keys_, also create a metadata entry named `sshKeys` 
+Go to _Google Cloud Platform -> API Manager -> Credentials -> Create Credentials -> Service account key_ and
+choose JSON as key type. Rename the file to `account.json` and put it in the project root.
+Add your SSH key under _Compute Engine -> Metadata -> SSH Keys_, also create a metadata entry named `sshKeys`
 with your public SSH key as value.
 
 ### Create a Kubernetes cluster
 
-Create a three nodes cluster with each node on a different zone:
+Create a three node cluster with each node in a different zone:
 
 ```bash
 k8s_version=$(gcloud container get-server-config --format=json | jq -r '.validNodeVersions[0]')
@@ -45,10 +45,10 @@ gcloud container clusters create demo \
 You can delete the cluster at any time with:
 
 ```bash
-gcloud container clusters delete demo -z=europe-west3-a 
+gcloud container clusters delete demo -z=europe-west3-a
 ```
 
-Setup credentials for `kubectl`:
+Set up credentials for `kubectl`:
 
 ```bash
 gcloud container clusters get-credentials demo -z=europe-west3-a
@@ -76,13 +76,13 @@ You can access the kubernetes-dashboard at `http://localhost:9099/ui` using kube
 kubectl proxy --port=9099 &
 ```
 
-### Create a Weave Cloud project
+### Create a Weave Cloud Instance
 
-Now that you have a Kubernetes cluster up and running you can start monitoring it with Weave Cloud. 
-You'll need a Weave Could service token, if you don't have a Weave token go 
-to [Weave Cloud](https://cloud.weave.works/) and sign up for a trial account. 
+Now that you have a Kubernetes cluster up and running you can start monitoring it with Weave Cloud.
+You'll need a Weave Could service token, if you don't have a Weave token go
+to [Weave Cloud](https://cloud.weave.works/) and sign up for a trial account.
 
-Deploy Weave Cloud agents:
+Deploy the Weave Cloud agents:
 
 ```bash
 kubectl apply -n kube-system -f \
@@ -114,10 +114,10 @@ Deploy OpenFaaS services in the `openfaas` namespace:
 kubectl apply -f ./openfaas
 ```
 
-This will create the pods, deployments and services for OpenFaaS gateway, faas-netesd (K8S controller), 
+This will create the pods, deployments and services for an OpenFaaS gateway, faas-netesd (K8S controller),
 Prometheus, Alert Manager, Nats and the Queue worker.
 
-Before exposing OpenFaaS on the internet we need to setup authentication. 
+Before exposing OpenFaaS on the Internet, you'll need to setup authentication.
 First create a basic-auth secret with your username and password:
 
 ```bash
@@ -132,7 +132,7 @@ Deploy Caddy as a reverse proxy for OpenFaaS gateway:
 kubectl apply -f ./caddy
 ```
 
-Wait for an external IP to be allocated and use it to access the OpenFaaS gateway UI 
+Wait for an external IP to be allocated and then use it to access the OpenFaaS gateway UI
 with your credentials at `http://<EXTERNAL-IP>`. You can get the external IP by running `kubectl get svc`.
 
 ```bash
@@ -149,7 +149,7 @@ gateway_ip=$(get_gateway_ip)
 echo "OpenFaaS Gateway IP: ${gateway_ip}"
 ```
 
-Install OpenFaaS CLI:
+Install the OpenFaaS CLI:
 
 ```bash
 curl -sL cli.openfaas.com | sudo sh
@@ -161,7 +161,7 @@ Login with the CLI:
 faas-cli login -u admin -p admin --gateway http://<EXTERNAL-IP>
 ```
 
-If you want to avoid having your password in bash history, you could create a text file with it and use that 
+If you want to avoid having your password in bash history, you could create a text file with it and use that
 along with the `--password-stdin` flag:
 
 ```bash
@@ -174,9 +174,9 @@ You can logout at any time with:
 faas-cli logout --gateway http://<EXTERNAL-IP>
 ```
 
-### Deploy functions
+### Deploy the OpenFaaS functions
 
-Create a stack file named `stack.yml` containing two function:
+Create a stack file named `stack.yml` containing two functions:
 
 ```yaml
 provider:
@@ -200,7 +200,7 @@ Deploy `nodeinfo` and `echo` on OpenFaaS:
 faas-cli deploy
 ```
 
-The `deploy` command will look for a `stack.yml` file in the current directory and will deploy all functions in the 
+The `deploy` command looks for a `stack.yml` file in the current directory and deploys all of the functions in the
 openfaas-fn namespace.
 
 Invoke the functions:
@@ -210,13 +210,13 @@ echo -n "test" | faas-cli invoke echo --gateway=http://<EXTERNAL-IP>
 echo -n "" | faas-cli invoke nodeinfo --gateway=http://<EXTERNAL-IP>
 ```
 
-Load testing:
+Apply a load test:
 
 ```bash
 #install hey
 go get -u github.com/rakyll/hey
 
-#do 1K requests 
+#do 1K requests
 hey -n 1000 -c 10 -m POST -d "test" http://admin:admin@<EXTERNAL-IP>/function/nodeinfo
 ```
 
@@ -233,21 +233,21 @@ labels."container.googleapis.com/namespace_name": "openfaas"
 textPayload: "alerts"
 ```
 
-Weave Cloud extends Prometheus by providing a distributed, multi-tenant, horizontally scalable version of Prometheus. 
+Weave Cloud extends Prometheus by providing a distributed, multi-tenant, horizontally scalable version of Prometheus.
 It hosts the scraped Prometheus metrics for you, so that you don’t have to worry about storage or backups.
 
-You can monitor your OpenFaaS setup by writing PromQL queries in the Weave Cloud Monitor GUI:
+Monitor your OpenFaaS setup by writing PromQL queries in the Weave Cloud Monitor GUI:
 
 ![cortex](https://github.com/stefanprodan/swarm-gcp/blob/master/screens/openfaas-metrics.png)
 
 
 ### Create functions
 
-With OpenFaaS CLI you can chose between using a programming language template where you only need to provide a 
-handler file, or a Docker that you can build yourself. There are many supported languages like 
+With the OpenFaaS CLI you can chose between using a programming language template where you only need to provide a
+handler file, or a Docker template that you can build yourself. There are many supported languages like
 Go, JS (node), Python, C# and Ruby.
 
-Lets create a function with Go that will fetch the SSL/TLS certificate info for a given URL.
+Let's create a function with Go that fetches the SSL/TLS certificate info for a given URL.
 
 First create a directory for your functions under `GOPATH`:
 
@@ -335,17 +335,17 @@ functions:
     image: stefanprodan/certinfo
 ```
 
-Now let's build the function into a docker image:
+Now let's build the function into a Docker image:
 
 ```bash
 faas-cli build -f certinfo.yml
 ```
 
-This will check your code for proper formatting with `gofmt`, run `go build & test` and pack your binary into 
-an alpine image. If everything goes well, you'll have a local Docker image named `username/certinfo:latest`. 
+This will check your code for proper formatting with `gofmt`, run `go build & test` and pack your binary into
+an alpine image. If everything goes well, you'll have a local Docker image named `username/certinfo:latest`.
 
-Let's push this image to Docker Hub. First create a public repository named `certinfo`, login to Docker Hub using 
-docker CLI and push the image:
+Push this image to Docker Hub. First create a public repository named `certinfo`, login to Docker Hub using
+docker CLI and then push the image:
 
 ```bash
 docker login
@@ -374,10 +374,11 @@ SANs [www.openfaas.com]
 
 ### Conclusions
 
-Like most serverless frameworks, OpenFaaS empowers developers to build, ship and run code in the cloud. 
-What OpenFaaS adds to this, is portability between dev environments and production with no vendor locked-in or 
-proprietary solutions. 
-OpenFaaS is a promising project with over 64 contributors and a vibrant community. Even if it's a young project you 
-can run it reliably in production backed by Kubernetes and Google Cloud. 
+Like most serverless frameworks, OpenFaaS empowers developers to build, ship and run code in the cloud.
+What OpenFaaS adds to this, is portability between dev and production environments with no vendor lock-in.
+OpenFaaS is a promising project and with over 64 contributors is a vibrant community. Even as a relatively young project, you
+can run it reliably in production backed by Kubernetes and Google Cloud. You can also use [Weave Cloud](http://cloud.weave.works) to monitor and alert on any issues in your OpenFaaS project.
 
+### Join the Weave Community
 
+If you have any questions or comments you can reach out to us on our [#weave-community](https://weave-community.slack.com/messages). To invite yourself to the Community Slack channel, visit [Weave Community Slack invite]( https://weaveworks.github.io/community-slack/) or contact us through one of these other channels at [Help and Support Services](https://www.weave.works).
