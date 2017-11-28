@@ -1,0 +1,9 @@
+provider:
+  name: faas
+  gateway: http://localhost:8080
+
+functions:
+  certinfo:
+    lang: nodejs
+    handler: node main.js
+    image: functions/nodeinfo:burner

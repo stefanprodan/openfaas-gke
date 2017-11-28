@@ -170,14 +170,24 @@ faas-cli logout --gateway http://<EXTERNAL-IP>
 
 ### Deploy functions
 
-Deploy a function in the `openfaas-fn` namespace:
+Create a stack file named `nodeinfo.yml` with the following:
+
+```yaml
+provider:
+  name: faas
+  gateway: http://<EXTERNAL-IP>
+
+functions:
+  certinfo:
+    lang: nodejs
+    handler: node main.js
+    image: functions/nodeinfo:burner
+```
+
+Deploy `nodeinfo` on OpenFaaS:
 
 ```bash
-faas-cli deploy --name=nodeinfo \
-    --image=functions/nodeinfo:burner \
-    --fprocess="node main.js" \
-    --network=openfaas-fn \
-    --gateway=http://<EXTERNAL-IP> 
+faas-cli deploy -f certinfo.yml
 ```
 
 Invoke the function:
