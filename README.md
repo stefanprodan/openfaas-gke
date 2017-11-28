@@ -1,5 +1,7 @@
 # OpenFaaS GKE
 
+![OpenFaaS](https://github.com/stefanprodan/openfaas-gke/blob/master/screens/banner.jpg)
+
 OpenFaaS is a serverless framework that runs on top of Kubernetes. It comes with a built-in UI and a handy CLI that 
 takes you from scaffolding new functions to deploying them on your Kubernetes cluster. 
 
