@@ -3,7 +3,8 @@
 ![OpenFaaS](https://github.com/stefanprodan/openfaas-gke/blob/master/screens/banner.jpg)
 
 OpenFaaS is a serverless framework that runs on top of Kubernetes. It comes with a built-in UI and a handy CLI that 
-takes you from scaffolding new functions to deploying them on your Kubernetes cluster. 
+takes you from scaffolding new functions to deploying them on your Kubernetes cluster. What's special about OpenFaaS 
+is that you can package any executable as a function, as long as it runs in a Docker container it will work on OpenFaaS. 
 
 What follows is a step by step guide on running OpenFaaS with Kubernetes 1.8 on Google Cloud.
 
@@ -239,8 +240,6 @@ You can monitor your OpenFaaS setup by writing PromQL queries in the Weave Cloud
 
 ![cortex](https://github.com/stefanprodan/swarm-gcp/blob/master/screens/openfaas-metrics.png)
 
-If you need more than what the Weave Cloud GUI offers, a Grafana Dashboard browser plugin is available that can be 
-downloaded from the [Google Chrome store](https://chrome.google.com/webstore/detail/weave-cloud/aihaocdgpjomchhocbnlhoaildnoollo).
 
 ### Create functions
 
@@ -372,4 +371,13 @@ NotBefore 2017-10-06 23:54:56 +0000 UTC
 NotAfter 2018-01-04 23:54:56 +0000 UTC
 SANs [www.openfaas.com]
 ```
+
+### Conclusions
+
+Like most serverless frameworks, OpenFaaS empowers developers to build, ship and run code in the cloud. 
+What OpenFaaS adds to this, is portability between dev environments and production with no vendor locked-in or 
+proprietary solutions. 
+OpenFaaS is a promising project with over 64 contributors and a vibrant community. Even if it's a young project you 
+can run it reliably in production backed by Kubernetes and Google Cloud. 
+
 
