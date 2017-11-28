@@ -357,13 +357,6 @@ Once the image is on Docker Hub you can deploy the function to your OpenFaaS GKE
 faas-cli deploy -f certinfo.yml --gateway=http://<EXTERNAL-IP>
 ```
 
-After deploying your functions you should disable Prometheus scraping by adding the following annotation:
-
-```bash
-kubectl -n openfaas-fn annotate services --all prometheus.io.scrape='false'
-kubectl -n openfaas-fn annotate pods --all prometheus.io.scrape='false'
-```
-
 Invoke certinfo with:
 
 ```bash
