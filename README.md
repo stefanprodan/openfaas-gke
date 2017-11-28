@@ -178,7 +178,7 @@ provider:
   gateway: http://<EXTERNAL-IP>
 
 functions:
-  certinfo:
+  nodeinfo:
     lang: nodejs
     handler: node main.js
     image: functions/nodeinfo:burner
