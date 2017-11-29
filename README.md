@@ -375,6 +375,8 @@ SANs [www.openfaas.com]
 ```
 
 Full source code of the certinfo function can be found on GitHub at [stefanprodan/openfaas-certinfo](https://github.com/stefanprodan/openfaas-certinfo).
+In the certinfo repo you can see how easy it is to do continuous deployments to Docker Hub with TravisCI for OpenFaaS functions. 
+
 
 ### Conclusions
 
