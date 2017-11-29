@@ -23,6 +23,14 @@ rules:
   - delete
   - update
 - apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
   - extensions
   resources:
   - deployments
