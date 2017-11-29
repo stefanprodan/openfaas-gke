@@ -7,6 +7,14 @@ takes you from scaffolding new functions to deploying them on your Kubernetes cl
 is that you can package any executable as a function, and as long as it runs in a Docker container, it will work on OpenFaaS.
 
 What follows is a step by step guide on running OpenFaaS with Kubernetes 1.8 on Google Cloud.
+ 
+This setup is optimized for production use: 
+
+* the Kubernetes multi-zone cluster is made out of three worker nodes with 2 CPUs and 7.50GB RAM each
+* the OpenFaaS gateway API and UI are username/password protected
+* all OpenFaaS components have 1GB memory limits 
+* the gateway read/write timeouts are set to one minute 
+* asynchronous function calls support with NATS streaming and three queue workers
 
 ### Create a GCP project
 
@@ -38,7 +46,7 @@ gcloud container clusters create demo \
     --zone=europe-west3-a \
     --additional-zones=europe-west3-b,europe-west3-c \
     --num-nodes=1 \
-    --machine-type=n1-standard-1 \
+    --machine-type=n1-standard-2 \
     --scopes=default,storage-rw
 ```
 
