@@ -7,7 +7,7 @@ import (
 
 func TestHandleReturnsCorrectResponse(t *testing.T) {
 	expected := "Google Internet Authority"
-	resp := Handle([]byte("google.com"))
+	resp := Handle([]byte("www.google.com/about/"))
 
 	r := regexp.MustCompile("(?m:" + expected + ")")
 	if !r.MatchString(resp) {
