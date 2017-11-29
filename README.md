@@ -210,6 +210,8 @@ echo -n "test" | faas-cli invoke echo --gateway=http://<EXTERNAL-IP>
 echo -n "" | faas-cli invoke nodeinfo --gateway=http://<EXTERNAL-IP>
 ```
 
+### Monitoring OpenFaaS
+
 Apply a load test:
 
 ```bash
