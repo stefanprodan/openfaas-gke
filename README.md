@@ -321,7 +321,7 @@ func TestHandleReturnsCorrectResponse(t *testing.T) {
 }
 ```
 
-Modify the certinfo.yml file and add your Docker Hub username to the image name:
+Modify the `certinfo.yml` file and add your Docker Hub username to the image name:
 
 ```yaml
 provider:
@@ -371,6 +371,8 @@ NotBefore 2017-10-06 23:54:56 +0000 UTC
 NotAfter 2018-01-04 23:54:56 +0000 UTC
 SANs [www.openfaas.com]
 ```
+
+Full source code of the certinfo function can be found on GitHub at [stefanprodan/openfaas-certinfo](https://github.com/stefanprodan/openfaas-certinfo).
 
 ### Conclusions
 
