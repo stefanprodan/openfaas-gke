@@ -378,7 +378,3 @@ Like most serverless frameworks, OpenFaaS empowers developers to build, ship and
 What OpenFaaS adds to this, is portability between dev and production environments with no vendor lock-in.
 OpenFaaS is a promising project and with over 64 contributors is a vibrant community. Even as a relatively young project, you
 can run it reliably in production backed by Kubernetes and Google Cloud. You can also use [Weave Cloud](http://cloud.weave.works) to monitor and alert on any issues in your OpenFaaS project.
-
-### Join the Weave Community
-
-If you have any questions or comments you can reach out to us on our [#weave-community](https://weave-community.slack.com/messages). To invite yourself to the Community Slack channel, visit [Weave Community Slack invite]( https://weaveworks.github.io/community-slack/) or contact us through one of these other channels at [Help and Support Services](https://www.weave.works).
