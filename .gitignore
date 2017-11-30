@@ -21,4 +21,4 @@ account.json
 # OpenFaaS CLI build
 build/
 credentials.yml
-test_image_bw.jpg
+up.sh
