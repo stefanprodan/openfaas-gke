@@ -3,7 +3,12 @@ provider:
   gateway: http://localhost:8080
 
 functions:
-  certinfo:
-    lang: nodejs
+  nodeinfo:
     handler: node main.js
     image: functions/nodeinfo:burner
+    labels:
+      com.openfaas.scale.min: "5"
+      com.openfaas.scale.max: "15"
+  echo:
+    handler: ./echo
+    image: functions/faas-echo:latest

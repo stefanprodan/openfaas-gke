@@ -30,6 +30,9 @@ kubectl -n openfaas create secret generic basic-auth \
 # deploy OpenFaaS
 kubectl apply -f ./openfaas
 
+# deploy Caddy LB
+kubectl apply -f ./caddy
+
 # wait for the public IP to assigned
 until [[ "$(get_gateway_ip)" ]]
  do sleep 1;

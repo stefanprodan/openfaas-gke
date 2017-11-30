@@ -10,11 +10,11 @@ What follows is a step by step guide on running OpenFaaS with Kubernetes 1.8 on 
  
 This setup is optimized for production use: 
 
-* the Kubernetes multi-zone cluster is made out of three worker nodes with 2 CPUs and 7.50GB RAM each
-* the OpenFaaS gateway API and UI are username/password protected
-* all OpenFaaS components have 1GB memory limits 
-* the gateway read/write timeouts are set to one minute 
-* asynchronous function calls support with NATS streaming and three queue workers
+* Kubernetes multi-zone cluster
+* OpenFaaS gateway API and UI are username/password protected
+* all OpenFaaS components have 1GB memory limits
+* the gateway read/write timeouts are set to one minute
+* asynchronous function calls with NATS streaming and three queue workers
 
 ### Create a GCP project
 
@@ -46,8 +46,14 @@ gcloud container clusters create demo \
     --zone=europe-west3-a \
     --additional-zones=europe-west3-b,europe-west3-c \
     --num-nodes=1 \
-    --machine-type=n1-standard-2 \
+    --machine-type=n1-standard-1 \
     --scopes=default,storage-rw
+```
+
+Increase the size of the default node pool to 6 nodes:
+
+```bash
+gcloud container clusters resize --size=2
 ```
 
 You can delete the cluster at any time with:
@@ -193,14 +199,19 @@ provider:
 
 functions:
   nodeinfo:
-    lang: nodejs
     handler: node main.js
     image: functions/nodeinfo:burner
+    labels:
+      com.openfaas.scale.min: "5"
+      com.openfaas.scale.max: "15"
   echo:
-    lang: Dockerfile
     handler: ./echo
     image: functions/faas-echo:latest
 ```
+
+With the `com.openfaas.scale` labels you can set the minimum number of pods and you can set a maximum limit for the 
+autoscaler. By default OpenFaaS will keep a single pod running per function and 
+it will scale up under load to a maximum of 20 pods.
 
 Deploy `nodeinfo` and `echo` on OpenFaaS:
 
@@ -215,12 +226,12 @@ Invoke the functions:
 
 ```bash
 echo -n "test" | faas-cli invoke echo --gateway=http://<EXTERNAL-IP>
-echo -n "" | faas-cli invoke nodeinfo --gateway=http://<EXTERNAL-IP>
+echo -n "verbose" | faas-cli invoke nodeinfo --gateway=http://<EXTERNAL-IP>
 ```
 
 ### Monitoring OpenFaaS
 
-Apply a load test:
+Let's run a load test with `hey`:
 
 ```bash
 #install hey
@@ -237,9 +248,10 @@ In the Weave Cloud UI under Explore you'll see how OpenFaaS scales up the nodein
 You can also monitor the scale up/down events with GCP Stackdrive Logs using this advanced filter:
 
 ```bash
-resource.type: "container"
-logName: "projects/openfaas/logs/gateway"  
-labels."container.googleapis.com/namespace_name": "openfaas"
+resource.type="container"
+resource.labels.cluster_name="demo"
+resource.labels.namespace_id="openfaas"
+logName:"gateway"
 textPayload: "alerts"
 ```
 
@@ -249,7 +261,6 @@ It hosts the scraped Prometheus metrics for you, so that you don’t have to wor
 Monitor your OpenFaaS setup by writing PromQL queries in the Weave Cloud Monitor GUI:
 
 ![cortex](https://github.com/stefanprodan/swarm-gcp/blob/master/screens/openfaas-metrics.png)
-
 
 ### Create functions
 
@@ -384,7 +395,6 @@ SANs [www.openfaas.com]
 
 Full source code of the certinfo function can be found on GitHub at [stefanprodan/openfaas-certinfo](https://github.com/stefanprodan/openfaas-certinfo).
 In the certinfo repo you can see how easy it is to do continuous deployments to Docker Hub with TravisCI for OpenFaaS functions. 
-
 
 ### Conclusions
 
