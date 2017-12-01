@@ -1,7 +1,9 @@
-# OpenFaaS GKE HTTPS Ingress 
+# OpenFaaS HTTPS Ingress
 
 This is a step by step guide on setting up HTTPS for OpenFaaS Gateway with Google Cloud L7 load balancer 
 and Let's Encrypt free TLS certificate.
+
+![ingress-tls](https://github.com/stefanprodan/openfaas-gke/blob/master/screens/ingress-tls.jpg)
 
 ### DNS Setup
 
@@ -104,13 +106,16 @@ kubectl apply -f ./lego-rbac.yaml
 Now let's create the kube-lego deployment file:
 
 ```yaml
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
   name: kube-lego
   namespace: openfaas
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: kube-lego
   template:
     metadata:
       labels:
@@ -154,7 +159,7 @@ spec:
 
 Save the above YAML as `lego-dep.yaml` and apply it:
 
-```yaml
+```bash
 kubectl apply -f ./lego-dep.yaml
 ```
 
@@ -259,7 +264,7 @@ spec:
 
 Save the above YAML as `caddy-dep.yaml` and apply it:
 
-```yaml
+```bash
 kubectl apply -f ./lego-dep.yaml
 ```
 
@@ -287,7 +292,7 @@ spec:
 
 Save the above YAML as `caddy-svc.yaml` and apply it:
 
-```yaml
+```bash
 kubectl apply -f ./lego-svc.yaml
 ```
 
