@@ -202,16 +202,17 @@ functions:
     handler: node main.js
     image: functions/nodeinfo:burner
     labels:
-      com.openfaas.scale.min: "5"
+      com.openfaas.scale.min: "2"
       com.openfaas.scale.max: "15"
   echo:
     handler: ./echo
     image: functions/faas-echo:latest
 ```
 
-With the `com.openfaas.scale` labels you can set the minimum number of pods and you can set a maximum limit for the 
-autoscaler. By default OpenFaaS will keep a single pod running per function and 
-it will scale up under load to a maximum of 20 pods.
+With the `com.openfaas.scale.min` label you can set the minimum number of running pods.
+With `com.openfaas.scale.max` you can set the maximum number of replicas for the autoscaler.
+By default OpenFaaS will keep a single pod running per function and under load it will scale up 
+to a maximum of 20 pods.
 
 Deploy `nodeinfo` and `echo` on OpenFaaS:
 

@@ -345,5 +345,5 @@ Kube-lego will create a secret named `openfaas-tls` that will contain the Let's 
 the GCP load balancer will load the certificate and you will be able to access the OpenFaaS 
 at `https://openfaas.exmaple.com`.
 
-![ingress-tls](https://github.com/stefanprodan/openfaas-gke/blob/master/screens/ingress-lb.png)
+![ingress-tls](https://github.com/stefanprodan/openfaas-gke/blob/master/screens/ingress-stats.png)
 
