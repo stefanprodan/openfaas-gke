@@ -17,7 +17,7 @@ spec:
       serviceAccountName: faas-controller
       containers:
       - name: faas-netesd
-        image: functions/faas-netesd:0.3.7
+        image: functions/faas-netesd:0.3.8
         imagePullPolicy: Always
         env:
         - name: function_namespace
