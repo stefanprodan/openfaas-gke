@@ -334,9 +334,16 @@ Replace `openfaas.example.com` with you're own domain, save the YAML as `ingress
 kubectl apply -f ./ingress-tls.yaml
 ```
 
-It will take about 10 minutes for the GCP load balancer to become healthy. 
+It will take at least 10 minutes for the GCP load balancer to become healthy. You can check the Ingress status with:
+
+```bash
+kubectl -n openfaas describe ingress openfaas-ingress
+```
+
 Once the Ingress is up, kube-lego will attach a new backend to the load balancer and will request a certificate. 
 Kube-lego will create a secret named `openfaas-tls` that will contain the Let's Encrypt certificate, from there 
 the GCP load balancer will load the certificate and you will be able to access the OpenFaaS 
-at `https://openfaas-exmaple.com`.
+at `https://openfaas.exmaple.com`.
+
+![ingress-tls](https://github.com/stefanprodan/openfaas-gke/blob/master/screens/ingress-lb.png)
 
