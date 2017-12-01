@@ -1,0 +1,56 @@
+---
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: caddy-tls
+  namespace: openfaas
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: caddy-tls
+  template:
+    metadata:
+      labels:
+        app: caddy-tls
+    spec:
+      containers:
+      - name: caddy-tls
+        image: stefanprodan/caddy:0.10.10
+        imagePullPolicy: Always
+        command: ["caddy", "-agree", "--conf", "/Caddyfile"]
+        env:
+        - name: ADMIN_USER
+          valueFrom:
+            secretKeyRef:
+              name: basic-auth
+              key: user
+        - name: ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: basic-auth
+              key: password
+        ports:
+        - containerPort: 80
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 80
+          initialDelaySeconds: 5
+          timeoutSeconds: 1
+        resources:
+          limits:
+            memory: 128Mi
+        volumeMounts:
+        - mountPath: /Caddyfile
+          name: caddy-config
+          subPath: Caddyfile
+      volumes:
+        - name: caddy-config
+          configMap:
+            name: caddy-tls-config
+            items:
+              - key: Caddyfile
+                path: Caddyfile
+                mode: 0644
