@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name:  queue-worker
-        image: functions/queue-worker:0.3.2-rc1
+        image: functions/queue-worker:0.4
         imagePullPolicy: Always
         env:
         - name: faas_function_suffix

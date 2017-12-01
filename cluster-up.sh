@@ -14,6 +14,8 @@ gcloud container clusters create demo \
     --machine-type=n1-standard-1 \
     --scopes=default,storage-rw
 
+#gcloud compute addresses create caddy-ip --global
+
 gcloud container clusters get-credentials demo -z=europe-west3-a
 
 kubectl create clusterrolebinding "cluster-admin-$(whoami)" \

@@ -4,7 +4,6 @@ kind: ServiceAccount
 metadata:
   name: faas-controller
   namespace: openfaas
-
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
