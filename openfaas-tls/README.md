@@ -3,7 +3,7 @@
 This is a step by step guide on setting up HTTPS for OpenFaaS Gateway with Google Cloud L7 load balancer 
 and Let's Encrypt free TLS certificate.
 
-![ingress-tls](https://github.com/stefanprodan/openfaas-gke/blob/master/screens/ingress-tls.jpg)
+![ingress-tls](https://github.com/stefanprodan/openfaas-gke/blob/master/screens/ingress-tls.png)
 
 ### DNS Setup
 
