@@ -244,7 +244,7 @@ hey -n 1000 -c 10 -m POST -d "test" http://admin:admin@<EXTERNAL-IP>/function/no
 
 In the Weave Cloud UI under Explore you'll see how OpenFaaS scales up the nodeinfo service:
 
-![scaling](https://github.com/stefanprodan/openfaas-gke/blob/master/screens/scaling.png)
+![scaling](https://github.com/stefanprodan/openfaas-gke/blob/master/screens/pods-scaling.png)
 
 You can also monitor the scale up/down events with GCP Stackdrive Logs using this advanced filter:
 
@@ -259,9 +259,13 @@ textPayload: "alerts"
 Weave Cloud extends Prometheus by providing a distributed, multi-tenant, horizontally scalable version of Prometheus.
 It hosts the scraped Prometheus metrics for you, so that you don’t have to worry about storage or backups.
 
-Monitor your OpenFaaS setup by writing PromQL queries in the Weave Cloud Monitor GUI:
+Weave Cloud comes with canned dashboards for Kubernetes that you can use to monitor a specific namespace:
 
-![cortex](https://github.com/stefanprodan/swarm-gcp/blob/master/screens/openfaas-metrics.png)
+![k8s-metrics](https://github.com/stefanprodan/openfaas-gke/blob/master/screens/kube-dash.png)
+
+You can also make your own dashboards based on OpenFaaS specific metrics:
+
+![openfaas-metrics](https://github.com/stefanprodan/openfaas-gke/blob/master/screens/metrics.png)
 
 ### Create functions
 
