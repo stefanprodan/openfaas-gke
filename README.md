@@ -11,10 +11,11 @@ What follows is a step by step guide on running OpenFaaS with Kubernetes 1.8 on 
 This setup is optimized for production use: 
 
 * Kubernetes multi-zone cluster
-* OpenFaaS gateway API and UI are username/password protected
+* OpenFaaS system API and UI are username/password protected
 * all OpenFaaS components have 1GB memory limits
 * the gateway read/write timeouts are set to one minute
 * asynchronous function calls with NATS streaming and three queue workers
+* optional GKE Ingress controller with Let's Encrypt TLS
 
 ### Create a GCP project
 
@@ -46,7 +47,7 @@ gcloud container clusters create demo \
     --zone=europe-west3-a \
     --additional-zones=europe-west3-b,europe-west3-c \
     --num-nodes=1 \
-    --machine-type=n1-standard-1 \
+    --machine-type=n1-standard-2 \
     --scopes=default,storage-rw
 ```
 
