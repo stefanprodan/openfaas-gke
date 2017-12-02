@@ -9,7 +9,9 @@ metadata:
 data:
   Caddyfile: |
     :80 {
-        basicauth / {$ADMIN_USER} {$ADMIN_PASSWORD}
+        status 200 /healthz
+        basicauth /system {$ADMIN_USER} {$ADMIN_PASSWORD}
+        basicauth /ui {$ADMIN_USER} {$ADMIN_PASSWORD}
         proxy / gateway:8080 {
                 transparent
             }
