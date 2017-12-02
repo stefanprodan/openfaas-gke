@@ -233,17 +233,17 @@ echo -n "verbose" | faas-cli invoke nodeinfo --gateway=http://<EXTERNAL-IP>
 
 ### Monitoring OpenFaaS
 
-Let's run a load test with `hey`:
+Let's run a load test with 10 function calls per second:
 
 ```bash
 #install hey
 go get -u github.com/rakyll/hey
 
-#do 1K requests
-hey -n 1000 -c 10 -m POST -d "test" http://<EXTERNAL-IP>/function/nodeinfo
+#do 1K requests rate limited at 10 QPS
+hey -n 1000 -q 10 -c 1 -m POST -d "verbose" http://<EXTERNAL-IP>/function/nodeinfo
 ```
 
-In the Weave Cloud UI under Explore you'll see how OpenFaaS scales up the nodeinfo service:
+In the Weave Cloud UI under Explore you'll see how OpenFaaS scales up the nodeinfo pods:
 
 ![scaling](https://github.com/stefanprodan/openfaas-gke/blob/master/screens/pods-scaling.png)
 
