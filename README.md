@@ -240,7 +240,7 @@ Let's run a load test with `hey`:
 go get -u github.com/rakyll/hey
 
 #do 1K requests
-hey -n 1000 -c 10 -m POST -d "test" http://admin:admin@<EXTERNAL-IP>/function/nodeinfo
+hey -n 1000 -c 10 -m POST -d "test" http://<EXTERNAL-IP>/function/nodeinfo
 ```
 
 In the Weave Cloud UI under Explore you'll see how OpenFaaS scales up the nodeinfo service:
