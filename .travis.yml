@@ -9,6 +9,7 @@ script:
 - cat ./caddy/*.yaml > caddy.yaml
 - yaml-lint openfaas.yaml
 - yaml-lint caddy.yaml
+- yaml-lint namespaces.yaml
 
 deploy:
   provider: releases
@@ -17,6 +18,7 @@ deploy:
   api_key:
     secure: OvCArR2HpVBjxGmeA8ri49c7Tsl1cYI0oD/8M1dVB8AjsTdHTVo2CQV1qMkjw+FNygYJp280PF+Clf8ShSboU1eHLYj4cRvW/DXHUW2+FgMBeT4OJPjSoCZVFw3OnvV7TnkP0MOG/7E6gjEzN1352zIW1jM5eudogB9MIdFMTA+M7J5EpUy2GijRZRrt+xVaVX5XNSHaENAgml8a1oYfh6ggesIQRECaOUvIiiNK2vFrcCGs8mPePU5+lp03t7RMh+LEfKaax66qNoly7dmd7ZltmU+8GS0Hso21kGBs5JEWD4olN//HsLWde8vEz9WdFM14E7+x01Tpc42Gahx6BZLpiUfYvo66LYKpZ7wsg1y3oe2u6M3FW5pcamqMfR1l8dyqV9PT4/dlD/2bnEE8ZBIGEIVWbxi+9fKdHqksC7HL/09j+gujNcYbffMFcUaHBN60IThtlvy4q1VEsth3v5E1emd+E7cEAI+PGHg9JNvkzoX5HAHHbtaKEhh2NNvUZbAew9hxHGMOrfH9v91CxgIP745XqWvMEQfe9mE6sVgGdVHkVg10UyiZgmjRFw1ibmVHV5PFB3zdJA5qI/H4+QTmGEPb6DL0x/4YkA/M/AeAmPREeLYS7ZYjdroZcdXLTseRNSplyn1jXdsIFhB7FBZTlrH5yaKNe0/Pi6PaqcI=
   file:
+    - namespaces.yaml
     - openfaas.yaml
     - caddy.yaml
   on:
