@@ -1,0 +1,10 @@
+provider:
+  name: faas
+  gateway: http://localhost:8080
+
+functions:
+  tweet:
+    handler: ./tweet
+    image: nicholasjackson/func_tweet
+    environment_file:
+      - credentials.yml
