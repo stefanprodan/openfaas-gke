@@ -77,7 +77,7 @@ kubectl create clusterrolebinding "cluster-admin-$(whoami)" \
     --user="$(gcloud config get-value core/account)"
 ```
 
-Grant admin privileges to kubernetes-dashboard:
+Grant admin privileges to kubernetes-dashboard (don't do this on a production environment):
 
 ```bash
 kubectl create clusterrolebinding kube-system-cluster-admin \
