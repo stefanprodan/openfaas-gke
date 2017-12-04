@@ -189,6 +189,9 @@ You can logout at any time with:
 faas-cli logout --gateway http://<EXTERNAL-IP>
 ```
 
+Optionally you could expose the gateway using Google Cloud L7 HTTPS load balancer. A detailed guide on 
+how to use Kubernetes Ingress controller with Let's Encrypt can be found [here](https://stefanprodan.com/2017/openfaas-kubernetes-ingress-ssl-gke/).
+
 ### Deploy the OpenFaaS functions
 
 Create a stack file named `stack.yml` containing two functions:
