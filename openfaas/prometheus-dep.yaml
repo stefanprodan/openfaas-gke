@@ -16,13 +16,11 @@ spec:
     spec:
       containers:
       - name: prometheus
-        image: prom/prometheus:v1.8.2
+        image: prom/prometheus:v2.0.0
         imagePullPolicy: Always
         command:
           - prometheus
-          - -config.file=/etc/prometheus/prometheus.yml
-          - -storage.local.path=/prometheus
-          - --alertmanager.url=http://alertmanager.openfaas:9093
+          - --config.file=/etc/prometheus/prometheus.yml
         ports:
         - containerPort: 9090
           protocol: TCP
@@ -33,9 +31,9 @@ spec:
         - mountPath: /etc/prometheus/prometheus.yml
           name: prometheus-config
           subPath: prometheus.yml
-        - mountPath: /etc/prometheus/alert.rules
+        - mountPath: /etc/prometheus/alert.rules.yml
           name: prometheus-config
-          subPath: alert.rules
+          subPath: alert.rules.yml
       volumes:
         - name: prometheus-config
           configMap:
@@ -44,6 +42,6 @@ spec:
               - key: prometheus.yml
                 path: prometheus.yml
                 mode: 0644
-              - key: alert.rules
-                path: alert.rules
+              - key: alert.rules.yml
+                path: alert.rules.yml
                 mode: 0644
