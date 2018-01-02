@@ -265,7 +265,7 @@ spec:
 Save the above YAML as `caddy-dep.yaml` and apply it:
 
 ```bash
-kubectl apply -f ./lego-dep.yaml
+kubectl apply -f ./caddy-dep.yaml
 ```
 
 Next we need to create a NodePort Service to serve as backend for the GCP Ingress controller:
