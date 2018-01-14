@@ -1,0 +1,17 @@
+provider:
+  name: faas
+  gateway: http://localhost:8080
+
+functions:
+  promql:
+    handler: ./promq
+    image: stefanprodan/openfaas-promq
+    labels:
+      com.openfaas.scale.min: "2"
+      com.openfaas.scale.max: "15"
+    limits:
+      cpu: 80m
+      memory: 128Mi
+    requests:
+      cpu: "10m"
+      memory: "64Mi"
