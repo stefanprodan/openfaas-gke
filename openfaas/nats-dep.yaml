@@ -13,6 +13,8 @@ spec:
     metadata:
       labels:
         app: nats
+      annotations:
+        prometheus.io.scrape: 'false'
     spec:
       containers:
       - name:  nats
@@ -31,4 +33,4 @@ spec:
           - faas-cluster
         resources:
           limits:
-            memory: 128Mi
+            memory: 512Mi

@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: gateway
-        image: functions/gateway:0.6.16
+        image: functions/gateway:0.7.0
         imagePullPolicy: Always
         env:
         - name: faas_prometheus_host

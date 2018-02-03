@@ -13,15 +13,21 @@ spec:
     metadata:
       labels:
         app: faas-netesd
+      annotations:
+        prometheus.io.scrape: 'false'
     spec:
       serviceAccountName: faas-controller
       containers:
       - name: faas-netesd
-        image: functions/faas-netesd:0.3.8
+        image: functions/faas-netesd:0.4.3
         imagePullPolicy: Always
         env:
         - name: function_namespace
           value: openfaas-fn
+        - name: write_timeout
+          value: "60"
+        - name: read_timeout
+          value: "60"
         ports:
         - containerPort: 8080
           protocol: TCP
