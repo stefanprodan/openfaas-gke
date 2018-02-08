@@ -182,6 +182,7 @@ data:
     :80 {
         status 200 /healthz
         basicauth /ui {$ADMIN_USER} {$ADMIN_PASSWORD}
+        basicauth /system {$ADMIN_USER} {$ADMIN_PASSWORD}
         proxy / gateway:8080 {
                 transparent
             }
