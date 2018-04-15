@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: gateway
-        image: functions/gateway:0.7.0
+        image: functions/gateway:0.7.8
         imagePullPolicy: Always
         env:
         - name: faas_prometheus_host
@@ -27,10 +27,16 @@ spec:
           value: "nats.openfaas"
         - name: faas_nats_port
           value: "4222"
+        - name: direct_functions
+          value: "true"
+        - name: direct_functions_suffix
+          value: "openfaas-fn"
         - name: write_timeout
-          value: "60"
+          value: "60s"
         - name: read_timeout
-          value: "60"
+          value: "60s"
+        - name: upstream_timeout 
+          value: "55s"
         ports:
         - containerPort: 8080
           protocol: TCP
