@@ -30,7 +30,7 @@ spec:
         - name: direct_functions
           value: "true"
         - name: direct_functions_suffix
-          value: "openfaas-fn."
+          value: "openfaas-fn"
         - name: write_timeout
           value: "60s"
         - name: read_timeout
