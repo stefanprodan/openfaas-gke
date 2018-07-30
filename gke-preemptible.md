@@ -267,6 +267,15 @@ spec:
           role: openfaas-system
 ```
 
+Save the above resource as `network-policies.yaml` and then apply it:
+
+```bash
+kubectl apply -f ./network-policies.yaml
+```
+
+Note that the above configuration will prohibit functions from calling each other or from reaching the
+OpenFaaS core services.
+
 ### Install OpenFaaS dev instance
 
 Generate a random password and create an OpenFaaS credentials secret:
@@ -279,11 +288,11 @@ kubectl -n openfaas-dev create secret generic basic-auth \
 --from-literal=basic-auth-password=$password
 ```
 
-Create OpenFaaS dev configuration (replace example.com with your own DNS):
+Create the dev configuration (replace example.com with your own DNS):
 
 ```yaml
 functionNamespace: openfaas-dev-fn
-basic_auth: false
+basic_auth: true
 operator:
   create: true
   createCRD: true
@@ -323,9 +332,9 @@ helm upgrade openfaas-dev --install openfaas/openfaas \
     -f openfaas-dev.yaml
 ```
 
-### Install OpenFaaS dev instance
+### Install OpenFaaS prod instance
 
-Generate a random password and create an OpenFaaS credentials secret:
+Generate a random password and create the basic-auth secret:
 
 ```bash
 password=$(head -c 12 /dev/urandom | shasum | cut -d' ' -f1)
@@ -335,11 +344,11 @@ kubectl -n openfaas-prod create secret generic basic-auth \
 --from-literal=basic-auth-password=$password
 ```
 
-Create OpenFaaS prod configuration (replace example.com with your own DNS):
+Create the production configuration (replace example.com with your own DNS):
 
 ```yaml
 functionNamespace: openfaas-prod-fn
-basic_auth: false
+basic_auth: true
 operator:
   create: true
   createCRD: false
