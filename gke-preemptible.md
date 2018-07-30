@@ -428,4 +428,17 @@ kubectl -n openfaas-dev-fn apply -f certinfo.yaml
 kubectl -n openfaas-prod-fn apply -f certinfo.yaml
 ```
 
+Verify the dev certificate using certinfo:
 
+```bash
+curl -d "openfaas-dev.example.com" https://openfaas-dev.example.com/function/certinfo
+
+Host 35.197.248.217
+Port 443
+Issuer Let's Encrypt Authority X3
+CommonName openfaas-dev.example.com
+NotBefore 2018-07-08 09:41:15 +0000 UTC
+NotAfter 2018-10-06 09:41:15 +0000 UTC
+SANs [openfaas-dev.example.com]
+TimeRemaining 2 months from now
+```
