@@ -1,10 +1,12 @@
 # Running multiple OpenFaaS instances on GKE
 
-This is step-by-step guide on setting up OpenFaaS on GKE with the following specs:
+This is a step-by-step guide on setting up OpenFaaS on GKE with the following specs:
 * two OpenFaaS instances isolated with network policies
 * a dedicated node pool for OpenFaaS core services
 * a dedicated preemptible node pool for OpenFaaS functions 
 * secure OpenFaaS ingress with Let's Encrypt TLS and authentication
+
+![openfaas-gke](https://github.com/stefanprodan/openfaas-gke/blob/master/screens/gke-pools.png)
 
 ### GKE Cluster Setup 
 
@@ -160,6 +162,8 @@ kubectl apply -f ./letsencrypt-issuer.yaml
 
 
 ### Setup OpenFaaS dev and prod network policies
+
+![network-policies](https://github.com/stefanprodan/openfaas-gke/blob/master/screens/gke-network-policies.png)
 
 Create the OpenFaaS dev and prod namespaces:
 
@@ -415,7 +419,7 @@ spec:
     - "cloud.google.com/gke-preemptible=true"
 ```
 
-Save the above resource as `certinfo.yaml` and use `kubectl` to deploy the function in both instances:
+Save the above resource as `certinfo.yaml` and use `kubectl` to deploy the function on both instances:
 
 ```bash
 kubectl -n openfaas-dev-fn apply -f certinfo.yaml
