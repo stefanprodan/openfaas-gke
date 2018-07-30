@@ -395,7 +395,9 @@ helm upgrade openfaas-prod --install openfaas/openfaas \
 
 ### Manage OpenFaaS functions with kubectl 
 
-Using the OpenFaaS CRD you can define functions as a Kubernetes custom resource:
+![openfaas-operator](https://github.com/stefanprodan/openfaas-flux/blob/master/docs/screens/openfaas-operator.png)
+
+Using the OpenFaaS CRD you can define functions as Kubernetes custom resource:
 
 ```yaml
 apiVersion: openfaas.com/v1alpha2
