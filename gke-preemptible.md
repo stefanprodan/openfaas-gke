@@ -7,7 +7,7 @@ This is a step-by-step guide on setting up OpenFaaS on GKE with the following ch
 * autoscaling for functions and their underling infrastructure 
 * secure OpenFaaS ingress with Let's Encrypt TLS and authentication
 
-![openfaas-gke](https://github.com/stefanprodan/openfaas-gke/blob/master/screens/gke-pools.png)
+![openfaas-gke](https://github.com/stefanprodan/openfaas-gke/blob/master/screens/gke-openfaas-envs.png)
 
 This setup can enable multiple teams to share the same CD pipeline with staging/production environments 
 hosted on GKE and development taking place on a local environment such as Minikube or Docker for Mac.
@@ -437,7 +437,7 @@ helm upgrade openfaas-prod --install openfaas/openfaas \
 
 ### Manage OpenFaaS functions with kubectl 
 
-![openfaas-operator](https://github.com/stefanprodan/openfaas-gke/blob/master/screens/gke-operator.png)
+![openfaas-operator](https://github.com/stefanprodan/openfaas-gke/blob/master/screens/gke-openfaas-operator.png)
 
 Using the OpenFaaS CRD you can define functions as Kubernetes custom resource:
 
