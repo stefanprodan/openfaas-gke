@@ -398,11 +398,12 @@ affinity:
         podAffinityTerm:
           labelSelector:
             matchLabels:
-              component: gateway
+              app: gateway
+              release: openfaas-prod
           topologyKey: kubernetes.io/hostname
 ```
 
-For production the OpenFaaS gateway is scaled to two replicas and with the pod anti-affinity rule we make sure that each replica will run on different node. 
+For production the OpenFaaS gateway is scaled to two replicas and with the pod anti-affinity rule we make sure that each replica will run on a different node. 
 Note that `operator.createCRD` is set to false since the `functions.openfaas.com` custom resource definition is already present on the cluster.
 
 Save the above file as `openfaas-prod.yaml` and install OpenFaaS instance from the project helm repository:
