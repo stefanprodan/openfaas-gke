@@ -67,6 +67,12 @@ When a VM is preempted it gets logged here:
 gcloud compute operations list | grep compute.instances.preempted
 ```
 
+The above setup along with a GCP load balancer and a 30GB ingress traffic will yell the following costs:
+
+![gke-costs](https://github.com/stefanprodan/openfaas-gke/blob/master/screens/gke-costs.png)
+
+### Setup Helm, Tiller, Ingress and Let's Encrypt provider 
+
 Set up credentials for `kubectl`:
 
 ```bash
@@ -80,8 +86,6 @@ kubectl create clusterrolebinding "cluster-admin-$(whoami)" \
     --clusterrole=cluster-admin \
     --user="$(gcloud config get-value core/account)"
 ```
-
-### Setup Helm, Tiller, Ingress and Let's Encrypt provider 
 
 Install Helm CLI with Homebrew:
 
