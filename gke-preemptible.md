@@ -35,7 +35,7 @@ You will use the default pool to run the following OpenFaaS components:
 * Async services ([NATS streaming](https://github.com/nats-io/nats-streaming-server) and [queue worker](https://github.com/openfaas/queue-worker))  
 * Monitoring and autoscaling services ([Prometheus](https://github.com/prometheus/prometheus) and [Alertmanager](https://github.com/prometheus/alertmanager))
 
-Create a preemptible node pool with a single node:
+Create a preemptible node pool of n1-highcpu-4 (vCPU: 4, RAM 3.60GB, DISK: 30GB) VMs:
 
 ```bash
 gcloud container node-pools create fn-pool \
