@@ -73,7 +73,14 @@ gcloud compute operations list | grep compute.instances.preempted
 
 The above setup along with a GCP load balancer forwarding rule and a 30GB ingress traffic per month will yell the following costs:
 
-![gke-costs](https://github.com/stefanprodan/openfaas-gke/blob/master/screens/gke-openfaas-costs.png)
+| Role | Type | Usage | Price per month |
+|------|------|-------|-----------------|
+| 2 x OpenFaaS Core Services | n1-standard-1 | 1460 total hours per month | $62.55 | 
+| 2 x OpenFaaS Functions | n1-highcpu-4 | 1460 total hours per month | $53.44 | 
+| Persistent disk | Storage | 120 GB | $5.76 | 
+| Forwarding rules | Forwarding rules | 1 | $21.90 |
+| Load Balancer ingress | Ingress | 30 GB | $0.30 |
+| Total |  |  | $143.94 |
 
 The cost estimation was generated with the [Google Cloud pricing calculator](https://cloud.google.com/products/calculator/) on 31 July 2018 and could change any time. 
 
