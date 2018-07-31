@@ -182,7 +182,7 @@ Save the above resource as `letsencrypt-issuer.yaml` and then apply it:
 kubectl apply -f ./letsencrypt-issuer.yaml
 ```
 
-### Staging and production network policies setup
+### Network policies setup
 
 ![network-policies](https://github.com/stefanprodan/openfaas-gke/blob/master/screens/gke-network-policies.png)
 
@@ -435,7 +435,7 @@ helm upgrade openfaas-prod --install openfaas/openfaas \
     -f openfaas-prod.yaml
 ```
 
-### Manage OpenFaaS functions with kubectl 
+### OpenFaaS functions operations
 
 ![openfaas-operator](https://github.com/stefanprodan/openfaas-gke/blob/master/screens/gke-openfaas-operator.png)
 
@@ -485,3 +485,29 @@ curl -d "openfaas.example.com" https://openfaas.example.com/function/certinfo
 Issuer Let's Encrypt Authority X3
 ....
 ```
+
+To manage functions on Kubernetes you can use kubectl but for development you'll need the OpenFaaS CLI. 
+You can install faas-cli and connect to the staging instance with:
+
+```bash
+curl -sL https://cli.openfaas.com | sudo sh
+
+echo $stg_password | faas-cli login -u admin --password-stdin -g https://openfaas-stg.example.com
+```
+
+Using faas-cli and kubectl a development workflow would look like this:
+
+* Create a function from a code template `faas-cli new myfn --lang go --prefix gcr.io/project-id` 
+* Implement the function handler
+* Build the function as a Docker image `faas-cli build -f myfn.yaml`
+* Run the function on your local cluster `faas-cli deploy -f myfn.yaml -g localhost:8080`
+* Push the image to GCP Container Registry `faas-cli push -f myfn.yml`
+* Generate the function Kubernetes custom resource `faas-cli generate --yaml myfn.yaml > myfn-k8s.yaml`
+* Deploy it on the staging environment `kubectl -n openfaas-stg-fn apply -f myfn-k8s.yaml`
+* Run integration tests on staging `cat test.json | faas-cli invoke myfn -g https://openfaas-stg.exmaple.com`
+* Promote the function to production `kubectl -n openfaas-prod-fn apply -f myfn-k8s.yaml`
+
+In a later post I'll show you how you can automate the CI and staging deployment with OpenFaaS Cloud 
+and production promotions with Weave Flux Helm Operator.
+
+
