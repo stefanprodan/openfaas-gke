@@ -1,16 +1,20 @@
-# Running multiple OpenFaaS instances on GKE
+# Multi-stage Serverless on Kubernetes with OpenFaaS and GKE
 
-This is a step-by-step guide on setting up OpenFaaS on GKE with the following specs:
-* two OpenFaaS instances isolated with network policies
-* a dedicated node pool for OpenFaaS core services
-* a dedicated preemptible node pool for OpenFaaS functions 
+This is a step-by-step guide on setting up OpenFaaS on GKE with the following characteristics:
+* two OpenFaaS instances, one for staging and one for production use, isolated with network policies 
+* a dedicated node pool for OpenFaaS long-running services
+* a dedicated node pool of preemptible VMs for OpenFaaS functions 
+* autoscaling for functions and their underling infrastructure 
 * secure OpenFaaS ingress with Let's Encrypt TLS and authentication
 
 ![openfaas-gke](https://github.com/stefanprodan/openfaas-gke/blob/master/screens/gke-pools.png)
 
-### GKE Cluster Setup 
+This setup can enable multiple teams to share the same CD pipeline with staging/production environments 
+hosted on GKE and development taking place on a local environment such as Minikube or Docker for Mac.
 
-Create a cluster with a node pool of minimum two nodes, autoscaling and network policy enabled:
+### GKE cluster setup 
+
+Create a cluster with two nodes and network policy enabled:
 
 ```bash
 k8s_version=$(gcloud container get-server-config --format=json | jq -r '.validNodeVersions[0]')
@@ -19,7 +23,6 @@ gcloud container clusters create openfaas \
     --cluster-version=${k8s_version} \
     --zone=europe-west3-a \
     --num-nodes=2 \
-    --enable-autoscaling --min-nodes=2 --max-nodes=4 \
     --machine-type=n1-standard-1 \
     --no-enable-cloud-logging \
     --disk-size=30 \
@@ -35,7 +38,7 @@ You will use the default pool to run the following OpenFaaS components:
 * Async services ([NATS streaming](https://github.com/nats-io/nats-streaming-server) and [queue worker](https://github.com/openfaas/queue-worker))  
 * Monitoring and autoscaling services ([Prometheus](https://github.com/prometheus/prometheus) and [Alertmanager](https://github.com/prometheus/alertmanager))
 
-Create a preemptible node pool of n1-highcpu-4 (vCPU: 4, RAM 3.60GB, DISK: 30GB) VMs:
+Create a node pool of n1-highcpu-4 (vCPU: 4, RAM 3.60GB, DISK: 30GB) preemptible VMs with autoscaling enabled:
 
 ```bash
 gcloud container node-pools create fn-pool \
@@ -44,15 +47,16 @@ gcloud container node-pools create fn-pool \
     --node-version=${k8s_version} \
     --zone=europe-west3-a \
     --num-nodes=1 \
+    --enable-autoscaling --min-nodes=2 --max-nodes=4 \
     --machine-type=n1-highcpu-4 \
     --disk-size=30 \
     --enable-autorepair \
-    --scopes=gke-default,compute-rw,storage-rw
+    --scopes=gke-default
 ```
 
-Preemtible VMs will be terminated and replaced after a maximum of 24 hours. 
-In order to avoid all nodes to be terminated at the same time, 
-wait for 30 minutes and scale up the fn pool to two nodes: 
+[Preemptible VMs](https://cloud.google.com/preemptible-vms/) are up to 80% cheaper than regular instances 
+but will be terminated and replaced after a maximum of 24 hours. 
+In order to avoid all nodes to be terminated at the same time, wait for 30 minutes and scale up the fn pool to two nodes: 
 
 ```bash
 gcloud container clusters resize openfaas \
@@ -71,7 +75,9 @@ The above setup along with a GCP load balancer forwarding rule and a 30GB ingres
 
 ![gke-costs](https://github.com/stefanprodan/openfaas-gke/blob/master/screens/gke-openfaas-costs.png)
 
-### Setup Helm, Tiller, Ingress and Let's Encrypt provider 
+The cost estimation was generated with the [Google Cloud pricing calculator](https://cloud.google.com/products/calculator/) on 31 July 2018 and could change any time. 
+
+### GKE addons setup 
 
 Set up credentials for `kubectl`:
 
@@ -103,7 +109,7 @@ kubectl create clusterrolebinding tiller-cluster-rule \
     --serviceaccount=kube-system:tiller 
 ```
 
-Deploy Tiller on the openfaas cluster:
+Deploy Tiller in the kube-system namespace:
 
 ```bash
 helm init --skip-refresh --upgrade --service-account tiller
@@ -112,7 +118,7 @@ helm init --skip-refresh --upgrade --service-account tiller
 When exposing OpenFaaS on the internet you should enable HTTPS to encrypt all traffic. 
 To do that you'll need the following tools:
 
-* [Heptio Contour](https://github.com/heptio/contour) as Kubernetes Ingress controller
+* [Heptio Contour](https://github.com/heptio/contour) as Kubernetes Ingress controller (or another ingress controller such as Nginx)
 * [JetStack cert-manager](https://github.com/jetstack/cert-manager) as Let's Encrypt provider 
 
 Heptio Contour is an ingress controller based on [Envoy](https://www.envoyproxy.io) reverse proxy that supports dynamic configuration updates. 
@@ -134,8 +140,8 @@ Go to your DNS provider and create an `A` record for each OpenFaaS instance:
 $ host openfaas.example.com
 openfaas.example.com has address 35.197.248.216
 
-$ host openfaas-dev.example.com
-openfaas-dev.example.com has address 35.197.248.217
+$ host openfaas-stg.example.com
+openfaas-stg.example.com has address 35.197.248.217
 ```
 
 Install cert-manager with Helm:
@@ -146,7 +152,7 @@ helm install --name cert-manager \
     stable/cert-manager
 ```
 
-Create a cluster issuer definition (replace `EMAIL@DOMAIN.NAME` with a valid email address):
+Create a cluster issuer definition (replace `email@example.com` with a valid email address):
 
 ```yaml
 apiVersion: certmanager.k8s.io/v1alpha1
@@ -155,7 +161,7 @@ metadata:
   name: letsencrypt
 spec:
   acme:
-    email: EMAIL@DOMAIN.NAME
+    email: email@example.com
     http01: {}
     privateKeySecretRef:
       name: letsencrypt-cert
@@ -168,8 +174,7 @@ Save the above resource as `letsencrypt-issuer.yaml` and then apply it:
 kubectl apply -f ./letsencrypt-issuer.yaml
 ```
 
-
-### Setup OpenFaaS dev and prod network policies
+### Staging and production network policies setup
 
 ![network-policies](https://github.com/stefanprodan/openfaas-gke/blob/master/screens/gke-network-policies.png)
 
@@ -179,7 +184,7 @@ Create the OpenFaaS dev and prod namespaces:
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: openfaas-dev
+  name: openfaas-stg
   labels:
     role: openfaas-system
     access: openfaas-system
@@ -187,7 +192,7 @@ metadata:
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: openfaas-dev-fn
+  name: openfaas-stg-fn
 ---
 apiVersion: v1
 kind: Namespace
@@ -209,7 +214,7 @@ Save the above resource as `openfaas-ns.yaml` and then apply it:
 kubectl apply -f ./openfaas-ns.yaml
 ```
 
-All ingress traffic from the `heptio-contour` namespace to both OpenFaaS systems:
+Allow ingress traffic from the `heptio-contour` namespace to both OpenFaaS environments:
 
 ```bash
 kubectl label namespace heptio-contour access=openfaas-system
@@ -221,8 +226,8 @@ Create network policies to isolate the OpenFaaS core services from the function 
 kind: NetworkPolicy
 apiVersion: networking.k8s.io/v1
 metadata:
-  name: openfaas-dev
-  namespace: openfaas-dev
+  name: openfaas-stg
+  namespace: openfaas-stg
 spec:
   policyTypes:
   - Ingress
@@ -236,8 +241,8 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: openfaas-dev-fn
-  namespace: openfaas-dev-fn
+  name: openfaas-stg-fn
+  namespace: openfaas-stg-fn
 spec:
   policyTypes:
   - Ingress
@@ -288,22 +293,22 @@ kubectl apply -f ./network-policies.yaml
 Note that the above configuration will prohibit functions from calling each other or from reaching the
 OpenFaaS core services.
 
-### Install OpenFaaS dev instance
+### OpenFaaS staging setup
 
 Generate a random password and create an OpenFaaS credentials secret:
 
 ```bash
-password=$(head -c 12 /dev/urandom | shasum | cut -d' ' -f1)
+stg_password=$(head -c 12 /dev/urandom | shasum | cut -d' ' -f1)
 
-kubectl -n openfaas-dev create secret generic basic-auth \
+kubectl -n openfaas-stg create secret generic basic-auth \
 --from-literal=basic-auth-user=admin \
---from-literal=basic-auth-password=$password
+--from-literal=basic-auth-password=$stg_password
 ```
 
-Create the dev configuration (replace example.com with your own DNS):
+Create the staging configuration (replace `example.com` with your own domain):
 
 ```yaml
-functionNamespace: openfaas-dev-fn
+functionNamespace: openfaas-stg-fn
 basic_auth: true
 operator:
   create: true
@@ -317,14 +322,14 @@ ingress:
     contour.heptio.com/num-retries: "3"
     contour.heptio.com/retry-on: "gateway-error"
   hosts:
-    - host: openfaas-dev.example.com
+    - host: openfaas-stg.example.com
       serviceName: gateway
       servicePort: 8080
       path: /
   tls:
     - secretName: openfaas-cert
       hosts:
-      - openfaas-dev.example.com
+      - openfaas-stg.example.com
 affinity:
   nodeAffinity:
     requiredDuringSchedulingIgnoredDuringExecution:
@@ -336,19 +341,27 @@ affinity:
 
 Note that the OpenFaaS components will be running on the default pool due to the affinity constraint `cloud.google.com/gke-nodepool=default-pool`.
 
-Save the above file as `openfaas-dev.yaml` and install OpenFaaS dev instance from the project helm repository:
+Save the above file as `openfaas-stg.yaml` and install OpenFaaS staging instance from the project helm repository:
 
 ```bash
 helm repo add openfaas https://openfaas.github.io/faas-netes/
 
-helm upgrade openfaas-dev --install openfaas/openfaas \
-    --namespace openfaas-dev  \
-    -f openfaas-dev.yaml
+helm upgrade openfaas-stg --install openfaas/openfaas \
+    --namespace openfaas-stg  \
+    -f openfaas-stg.yaml
 ```
 
-### Install OpenFaaS prod instance
+In a couple of seconds cert-manager should fetch a certificate from LE:
 
-Generate a random password and create the basic-auth secret:
+```
+kubectl -n kube-system logs deployment/cert-manager-cert-manager
+
+Certificate issued successfully
+```
+
+### OpenFaaS production setup
+
+Generate a random password and create the basic-auth secret in the openfaas-prod namespace:
 
 ```bash
 password=$(head -c 12 /dev/urandom | shasum | cut -d' ' -f1)
@@ -358,7 +371,7 @@ kubectl -n openfaas-prod create secret generic basic-auth \
 --from-literal=basic-auth-password=$password
 ```
 
-Create the production configuration (replace example.com with your own DNS):
+Create the production configuration (replace `example.com` with your own domain):
 
 ```yaml
 functionNamespace: openfaas-prod-fn
@@ -447,21 +460,20 @@ Note that this function will be running on the fn pool due to the affinity const
 Save the above resource as `certinfo.yaml` and use `kubectl` to deploy the function on both instances:
 
 ```bash
-kubectl -n openfaas-dev-fn apply -f certinfo.yaml
+kubectl -n openfaas-stg-fn apply -f certinfo.yaml
 kubectl -n openfaas-prod-fn apply -f certinfo.yaml
 ```
 
-Verify the dev certificate using certinfo:
+Verify both endpoints are live:
 
-```bash
-curl -d "openfaas-dev.example.com" https://openfaas-dev.example.com/function/certinfo
+```
+curl -d "openfaas-stg.example.com" https://openfaas-stg.example.com/function/certinfo
 
-Host 35.197.248.217
-Port 443
 Issuer Let's Encrypt Authority X3
-CommonName openfaas-dev.example.com
-NotBefore 2018-07-08 09:41:15 +0000 UTC
-NotAfter 2018-10-06 09:41:15 +0000 UTC
-SANs [openfaas-dev.example.com]
-TimeRemaining 2 months from now
+....
+
+curl -d "openfaas.example.com" https://openfaas.example.com/function/certinfo
+
+Issuer Let's Encrypt Authority X3
+....
 ```
