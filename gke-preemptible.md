@@ -10,7 +10,7 @@ This is a step-by-step guide on setting up OpenFaaS on GKE with the following sp
 
 ### GKE Cluster Setup 
 
-Create a cluster with a node pool of minimum two nodes:
+Create a cluster with a node pool of minimum two nodes, autoscaling and network policy enabled:
 
 ```bash
 k8s_version=$(gcloud container get-server-config --format=json | jq -r '.validNodeVersions[0]')
@@ -20,13 +20,20 @@ gcloud container clusters create openfaas \
     --zone=europe-west3-a \
     --num-nodes=2 \
     --enable-autoscaling --min-nodes=2 --max-nodes=4 \
-    --machine-type=n1-highcpu-4 \
+    --machine-type=n1-standard-1 \
     --no-enable-cloud-logging \
     --disk-size=30 \
     --enable-autorepair \
     --enable-network-policy \
     --scopes=gke-default,compute-rw,storage-rw
 ```
+
+The above command will create a node pool named `default-pool` made of n1-standard-1 (vCPU: 1, RAM 3.75GB, DISK: 30GB) VMs. 
+
+You will use the default pool to run the following OpenFaaS components:
+* Core services ([Gateway](https://github.com/openfaas/faas) and Kubernetes [Operator](https://github.com/openfaas-incubator/openfaas-operator))
+* Async services ([NATS streaming](https://github.com/nats-io/nats-streaming-server) and [queue worker](https://github.com/openfaas/queue-worker))  
+* Monitoring and autoscaling services ([Prometheus](https://github.com/prometheus/prometheus) and [Alertmanager](https://github.com/prometheus/alertmanager))
 
 Create a preemptible node pool with a single node:
 
@@ -54,6 +61,12 @@ gcloud container clusters resize openfaas \
     --zone=europe-west3-a 
 ```
 
+When a VM is preempted it gets logged here:
+
+```bash
+gcloud compute operations list | grep compute.instances.preempted
+```
+
 Set up credentials for `kubectl`:
 
 ```bash
@@ -66,15 +79,6 @@ Create a cluster admin user:
 kubectl create clusterrolebinding "cluster-admin-$(whoami)" \
     --clusterrole=cluster-admin \
     --user="$(gcloud config get-value core/account)"
-```
-
-This default-pool nodes are labeled with `cloud.google.com/gke-nodepool=default-pool` and 
-the preemptible nodes with `cloud.google.com/gke-nodepool=fn-pool` and `cloud.google.com/gke-preemptible=true`.
-
-When a VM is preempted it gets logged here:
-
-```bash
-gcloud compute operations list | grep compute.instances.preempted
 ```
 
 ### Setup Helm, Tiller, Ingress and Let's Encrypt provider 
@@ -326,6 +330,8 @@ affinity:
           operator: DoesNotExist
 ```
 
+Note that the OpenFaaS components will be running on the default pool due to the affinity constraint `cloud.google.com/gke-nodepool=default-pool`.
+
 Save the above file as `openfaas-dev.yaml` and install OpenFaaS dev instance from the project helm repository:
 
 ```bash
@@ -395,7 +401,7 @@ helm upgrade openfaas-prod --install openfaas/openfaas \
 
 ### Manage OpenFaaS functions with kubectl 
 
-![openfaas-operator](https://github.com/stefanprodan/openfaas-flux/blob/master/docs/screens/openfaas-operator.png)
+![openfaas-operator](https://github.com/stefanprodan/openfaas-gke/blob/master/screens/gke-operator.png)
 
 Using the OpenFaaS CRD you can define functions as Kubernetes custom resource:
 
@@ -420,6 +426,8 @@ spec:
   constraints:
     - "cloud.google.com/gke-preemptible=true"
 ```
+
+Note that this function will be running on the fn pool due to the affinity constraint `cloud.google.com/gke-preemptible=true`.
 
 Save the above resource as `certinfo.yaml` and use `kubectl` to deploy the function on both instances:
 
