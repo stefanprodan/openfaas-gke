@@ -54,7 +54,7 @@ gcloud container clusters create demo \
 Increase the size of the default node pool to 6 nodes:
 
 ```bash
-gcloud container clusters resize --size=2
+gcloud container clusters resize demo --size=2 --zone=europe-west3-a
 ```
 
 You can delete the cluster at any time with:
